@@ -46,7 +46,6 @@ def login(request, template_name='accounts/login.html'):
     from .forms import UserAuthForm
 
     redirect_to = request.POST.get('next', request.GET.get('next', ''))
-    do_redirect = False
 
     if request.user.is_authenticated:
         if redirect_to == request.path:

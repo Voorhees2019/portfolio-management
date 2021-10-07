@@ -32,7 +32,7 @@ Pygments==2.7.4
 python-decouple==3.3
 pytz==2019.3
 redis==3.4.1
-sentry-sdk==0.14.1
+sentry-sdk==1.4.3
 six==1.14.0
 sqlparse==0.3.0
 traitlets==4.3.3

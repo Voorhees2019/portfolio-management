@@ -28,9 +28,8 @@ class UserAdmin(BaseUserAdmin):
         (None, {
             'classes': ('wide',),
             'fields': (
-                'email', 'name', 'role', 'phone',
-                'language',
-                'time_zone',
+                'email', 'name',
+                # 'role', 'phone', 'language', 'time_zone',
                 'password1', 'password2')
         }),
     )
