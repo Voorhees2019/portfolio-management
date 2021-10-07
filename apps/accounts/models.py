@@ -1,18 +1,11 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from django.conf import settings
 from django.utils import timezone
-from django.db.models.signals import pre_save, post_delete
-from django.contrib.postgres.fields import JSONField, ArrayField
-from django.dispatch import receiver
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
     PermissionsMixin,
 )
-import pytz
-import random
-import string
 
 
 class UserManager(BaseUserManager):
@@ -82,6 +75,11 @@ class User(AbstractBaseUser, PermissionsMixin):
             'Designates whether this user should be treated as active. '
             'Unselect this instead of deleting accounts.'
         ),
+    )
+    email_confirmed = models.BooleanField(
+        _('email verified'),
+        default=False,
+        help_text=_('Designates whether the user has verified the email address.'),
     )
 
     date_joined = models.DateTimeField(_('Date joined'), default=timezone.now)

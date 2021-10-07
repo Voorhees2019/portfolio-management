@@ -1,6 +1,5 @@
-from django.urls import path, re_path, reverse_lazy
+from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
-from django.conf import settings
 from . import views
 
 
@@ -8,6 +7,7 @@ urlpatterns = [
     path('login/', views.login, name='login'),
     path('logout/', views.logout, name='logout'),
     path('register/', views.register, name='register'),
+    path('email-confirm/<uidb64>/<token>/', views.email_confirm, name='email_confirm'),
     path(
         'password-change/',
         auth_views.PasswordChangeView.as_view(

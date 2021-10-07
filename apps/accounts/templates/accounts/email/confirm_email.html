@@ -1,0 +1,16 @@
+{% extends "email/base.html" %}
+{% load i18n core_tags %}
+
+{% block content %}
+    {% load_option "SITE_URL" as site_url %}
+    <h1>{% trans "Email confirmation" %}</h1>
+
+    <p>{% trans "Hello,"%} {{ user.username }}</p>
+
+    <p>{% trans "You're receiving this email because you requested to verify your email address." %}</p>
+
+    <p>{% trans "Please click on the link to confirm your email address:" %}</p>
+
+    <p><a href="{{ site_url }}{% url 'email_confirm' uidb64=uid token=token %}">
+        {{ site_url }}{% url 'email_confirm' uidb64=uid token=token %}</a></p>
+{% endblock %}
