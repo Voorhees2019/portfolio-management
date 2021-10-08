@@ -35,8 +35,10 @@ INSTALLED_APPS = [
     # 'rest_framework',
     # 'rest_framework.authtoken',
 
+    # custom apps
     'apps.core',
     'apps.accounts',
+    'apps.projects',
 ]
 
 
