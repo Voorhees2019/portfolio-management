@@ -4,29 +4,31 @@
 {% block title %}{% trans "Personal information" %}{% endblock %}
 
 {% block profile_content %}
-<div class="row">
-    <div class="col-md-8">
-        <h3>{% trans "Profile" %}</h3>
+    <div class="row">
+        <div class="col-md-8">
+            <h3>{% trans "Profile" %}</h3>
 
-        <table class="table table-bordered">
-            <tr>
-                <td>{% trans "Name" %}</td>
-                <td>{{ request.user.name }}</td>
-            </tr>
-            <tr>
-                <td>{% trans "Email" %}</td>
-                <td><a href="mailto:{{ request.user.email }}">{{ request.user.email }}</a>
-                    {% if request.user.email_confirmed %}
-                        <span class="badge badge-secondary" style="font-size: 14px;">Confirmed</span>
-                    {% else %}
-                        <span class="badge badge-danger" style="font-size: 14px;">Not Confirmed</span>
-                    {% endif %}</td>
-            </tr>
-        </table>
+            <table class="table table-bordered">
+                <tr>
+                    <td>{% trans "Name" %}</td>
+                    <td>{{ request.user.name }}</td>
+                </tr>
+                <tr>
+                    <td>{% trans "Email" %}</td>
+                    <td><a href="mailto:{{ request.user.email }}">{{ request.user.email }}</a>
+                        {% if request.user.email_confirmed %}
+                            <span class="badge badge-secondary" style="font-size: 14px;">Confirmed</span>
+                        {% else %}
+                            <a href="{% url 'verify_profile_email' %}"><span class="badge badge-danger"
+                                style="font-size: 14px;">Send verification email !</span></a>
+                        {% endif %}</td>
+                </tr>
+            </table>
+        </div>
     </div>
-</div>
 
-<div class="mt-4">
-    <a href="{% url 'edit_personal_information' %}" class="btn btn-secondary">{% trans "Edit profile" %}</a>
-</div>
+    <div class="mt-1">
+        <a href="{% url 'edit_personal_information' %}" class="btn btn-secondary">{% trans "Edit profile" %}</a>
+        <a href="{% url 'password_change' %}" class="btn btn-primary">{% trans "Change Password" %}</a>
+    </div>
 {% endblock %}

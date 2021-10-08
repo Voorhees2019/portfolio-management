@@ -31,7 +31,9 @@ def edit_personal_information(request):
     if request.method == 'POST':
         form = EditUserForm(instance=user, data=request.POST, files=request.FILES)
         if form.is_valid():
-            form.save()
+            user = form.save(commit=False)
+            user.email_confirmed = False
+            user.save()
             return redirect(reverse('personal_information'))
     else:
         form = EditUserForm(instance=user)
@@ -65,7 +67,41 @@ def login(request):
     return render(request, 'accounts/login.html', context)
 
 
-def register(request, template_name='accounts/register.html'):
+def send_verification_email(to_user):
+    email_template_name = 'accounts/email/confirm_email.html'
+    c = {
+        'user': to_user,
+        'uid': urlsafe_base64_encode(force_bytes(to_user.pk)),
+        'token': account_activation_token.make_token(to_user),
+    }
+    mail_subject = 'Activate your account'
+    html_message = render_to_string(email_template_name, c)
+    plain_message = strip_tags(html_message)
+
+    try:
+        send_mail(
+            subject=mail_subject,
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[to_user.email],
+            html_message=html_message,
+            fail_silently=False)
+    except BadHeaderError:
+        return HttpResponse('Invalid header found.')
+
+
+def alert_email_sent(request):
+    messages.success(request, 'Verification email has been sent to your email address. Please check your inbox.')
+
+
+def verify_profile_email(request):
+    user = request.user
+    send_verification_email(to_user=user)
+    alert_email_sent(request)
+    return redirect('personal_information')
+
+
+def register(request):
     from .forms import UserRegistrationForm
     if request.user.is_authenticated:
         return redirect(reverse('index'))
@@ -76,31 +112,9 @@ def register(request, template_name='accounts/register.html'):
             user = form.save(commit=False)
             # user.backend = 'django.contrib.auth.backends.ModelBackend'
             user.save()
-
-            email_template_name = 'accounts/email/confirm_email.html'
-            c = {
-                'user': user,
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                'token': account_activation_token.make_token(user),
-            }
-            mail_subject = 'Activate your account'
-            html_message = render_to_string(email_template_name, c)
-            plain_message = strip_tags(html_message)
-            to_email = form.cleaned_data.get('email')
-
-            try:
-                send_mail(
-                    subject=mail_subject,
-                    message=plain_message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[to_email],
-                    html_message=html_message,
-                    fail_silently=False)
-            except BadHeaderError:
-                return HttpResponse('Invalid header found.')
-
+            send_verification_email(to_user=user)
+            alert_email_sent(request)
             auth.login(request, user)
-            messages.success(request, 'Please confirm your email address to complete the registration.')
             return redirect('personal_information')
     else:
         form = UserRegistrationForm()
