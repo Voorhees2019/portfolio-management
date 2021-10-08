@@ -35,8 +35,10 @@ INSTALLED_APPS = [
     # 'rest_framework',
     # 'rest_framework.authtoken',
 
+    # custom apps
     'apps.core',
     'apps.accounts',
+    'apps.projects',
 ]
 
 
@@ -143,7 +145,7 @@ AUTHENTICATION_BACKENDS = (
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'
 LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout/'
 

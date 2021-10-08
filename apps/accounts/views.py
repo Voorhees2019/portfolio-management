@@ -1,18 +1,18 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.conf import settings
-from django.http import JsonResponse, HttpResponseForbidden, HttpResponse
-from django.utils.translation import ugettext as _
+from django.core.mail import send_mail, BadHeaderError
+from django.http import HttpResponse
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.urls import reverse, reverse_lazy
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
-from django.utils import timezone
-from datetime import timedelta
-from django.db.models import Q
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils.encoding import force_bytes, force_text
+from django.utils.html import strip_tags
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from .models import User
 from .forms import EditUserForm
+from .tokens import account_activation_token
 
 
 @login_required
@@ -31,7 +31,9 @@ def edit_personal_information(request):
     if request.method == 'POST':
         form = EditUserForm(instance=user, data=request.POST, files=request.FILES)
         if form.is_valid():
-            form.save()
+            user = form.save(commit=False)
+            user.email_confirmed = False
+            user.save()
             return redirect(reverse('personal_information'))
     else:
         form = EditUserForm(instance=user)
@@ -42,11 +44,10 @@ def edit_personal_information(request):
     return render(request, 'accounts/edit_personal_information.html', context)
 
 
-def login(request, template_name='accounts/login.html'):
+def login(request):
     from .forms import UserAuthForm
 
     redirect_to = request.POST.get('next', request.GET.get('next', ''))
-    do_redirect = False
 
     if request.user.is_authenticated:
         if redirect_to == request.path:
@@ -66,7 +67,41 @@ def login(request, template_name='accounts/login.html'):
     return render(request, 'accounts/login.html', context)
 
 
-def register(request, template_name='accounts/register.html'):
+def send_verification_email(to_user):
+    email_template_name = 'accounts/email/confirm_email.html'
+    c = {
+        'user': to_user,
+        'uid': urlsafe_base64_encode(force_bytes(to_user.pk)),
+        'token': account_activation_token.make_token(to_user),
+    }
+    mail_subject = 'Activate your account'
+    html_message = render_to_string(email_template_name, c)
+    plain_message = strip_tags(html_message)
+
+    try:
+        send_mail(
+            subject=mail_subject,
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[to_user.email],
+            html_message=html_message,
+            fail_silently=False)
+    except BadHeaderError:
+        return HttpResponse('Invalid header found.')
+
+
+def alert_email_sent(request):
+    messages.success(request, 'Verification email has been sent to your email address. Please check your inbox.')
+
+
+def verify_profile_email(request):
+    user = request.user
+    send_verification_email(to_user=user)
+    alert_email_sent(request)
+    return redirect('personal_information')
+
+
+def register(request):
     from .forms import UserRegistrationForm
     if request.user.is_authenticated:
         return redirect(reverse('index'))
@@ -74,8 +109,11 @@ def register(request, template_name='accounts/register.html'):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            user.backend = 'django.contrib.auth.backends.ModelBackend'
+            user = form.save(commit=False)
+            # user.backend = 'django.contrib.auth.backends.ModelBackend'
+            user.save()
+            send_verification_email(to_user=user)
+            alert_email_sent(request)
             auth.login(request, user)
             return redirect('personal_information')
     else:
@@ -85,6 +123,21 @@ def register(request, template_name='accounts/register.html'):
         'form': form,
     }
     return render(request, 'accounts/register.html', context)
+
+
+def email_confirm(request, uidb64, token):
+    try:
+        uid = force_text(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    if user is not None and account_activation_token.check_token(user, token):
+        user.email_confirmed = True
+        user.save()
+        messages.success(request, 'Email address successfully confirmed.')
+        return redirect('personal_information')
+    else:
+        return HttpResponse('Activation link is invalid!')
 
 
 def logout(request):

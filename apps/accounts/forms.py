@@ -99,7 +99,7 @@ class EditUserForm(forms.ModelForm):
         else:
             uu = User.objects.filter(email=email).exclude(pk=self.instance.pk).exists()
             if uu:
-                raise forms.ValidationError(_('This email address is already using by another user.'))
+                raise forms.ValidationError(_('This email address has already been used by another user.'))
         return email
 
 
