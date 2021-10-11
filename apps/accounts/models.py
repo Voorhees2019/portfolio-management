@@ -37,7 +37,7 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_user(self, email, name, password=None, **extra_fields):
+    def create_user(self, email, name=None, password=None, **extra_fields):
         return self._create_user(email, name, password, False, False, **extra_fields)
 
     def create_superuser(
@@ -78,7 +78,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     email_confirmed = models.BooleanField(
         _('email verified'),
-        default=False,
+        default=True,
         help_text=_('Designates whether the user has verified the email address.'),
     )
 

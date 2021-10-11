@@ -17,4 +17,8 @@
       <a href="{% url 'password_reset' %}" rel="nofollow" class="link">{% trans "Forgot Password?" %}</a>
     </div>
 </form>
+    <div class="border-top mt-3">
+        <a href="{% url 'social:begin' 'linkedin-oauth2' %}" class="btn btn-lg btn-info btn-block mt-4">
+            {% trans "Login with LinkedIn" %}</a>
+    </div>
 {% endblock %}

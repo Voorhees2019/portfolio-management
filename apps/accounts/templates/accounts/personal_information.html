@@ -29,6 +29,10 @@
 
     <div class="mt-1">
         <a href="{% url 'edit_personal_information' %}" class="btn btn-secondary">{% trans "Edit profile" %}</a>
-        <a href="{% url 'password_change' %}" class="btn btn-primary">{% trans "Change Password" %}</a>
+        {% if request.user.has_usable_password %}
+            <a href="{% url 'password_change' %}" class="btn btn-primary">{% trans "Change Password" %}</a>
+        {% else %}
+            <a href="{% url 'set_password' %}" class="btn btn-primary">{% trans "Set Password" %}</a>
+        {% endif %}
     </div>
 {% endblock %}
