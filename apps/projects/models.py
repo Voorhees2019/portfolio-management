@@ -11,12 +11,18 @@ class Industry(models.Model):
     def __str__(self):
         return f"{self.title}"
 
+    class Meta:
+        verbose_name_plural = 'Industries'
+
 
 class Technology(models.Model):
     title = models.CharField(_('Title'), max_length=80)
 
     def __str__(self):
         return f"{self.title}"
+
+    class Meta:
+        verbose_name_plural = 'Technologies'
 
 
 class Project(models.Model):
@@ -34,6 +40,9 @@ class Project(models.Model):
     def __str__(self):
         return f"{self.title}"
 
+    class Meta:
+        verbose_name_plural = 'Projects'
+
 
 class Company(models.Model):
     name = models.CharField(_('Company name'), max_length=150)
@@ -47,3 +56,6 @@ class Company(models.Model):
 
     def __str__(self):
         return f"{self.name}"
+
+    class Meta:
+        verbose_name_plural = 'Companies'
