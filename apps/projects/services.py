@@ -5,7 +5,8 @@ import random
 from faker import Faker
 from .models import Industry, Technology, Project
 from apps.accounts.models import User
-
+from .industry_list import random_industries
+from .technology_list import random_technologies
 fake = Faker()
 
 
@@ -55,15 +56,15 @@ def generate_fake_projects(number: int):
         Project.technologies.through.objects.bulk_create(project_to_technology_links, ignore_conflicts=True)
 
 
-def generate_projects_csv(projects_num: int = 5):
+def generate_projects_csv(projects_num: int = 30):
     filename = 'projects.csv'
     # Delete existing random projects csv file
     if os.path.exists(filename):
         os.remove(filename)
 
     d = {
-        'technologies': list(Technology.objects.all()),
-        'industries': list(Industry.objects.all()),
+        'technologies': random_industries,
+        'industries': random_technologies,
     }
 
     with open('projects.csv', mode='w') as file:
@@ -89,7 +90,7 @@ def generate_projects_csv(projects_num: int = 5):
                     # add random technologies and industries
                     cell_value = []
                     for i in range(random.randint(0, 10)):
-                        random_title = random.choice(d[col]).title
+                        random_title = random.choice(d[col])
                         if random_title in cell_value:
                             continue
                         cell_value.append(random_title)
