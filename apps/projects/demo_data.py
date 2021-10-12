@@ -1,3 +1,5 @@
+# Here is a random demo data for generating random projects
+
 random_industries = [
     'Media Production',
     'Computer & Network Security',
@@ -19,4 +21,24 @@ random_industries = [
     'Industrial Automation',
     'Fine Art',
     'Maritime',
+]
+random_technologies = [
+    'Javascript',
+    'Python',
+    'Ruby',
+    'PHP',
+    'Java',
+    'C#',
+    'HTML',
+    'Elixir',
+    'Lastly, Scala',
+    'Angular.js',
+    'Ember.js',
+    'Backbone.js',
+    'Express.js',
+    'Vue.js',
+    'Apache Web Server',
+    'Nginx Web Server',
+    'IIS Web Server',
+    'LiteSpeed Web Server',
 ]

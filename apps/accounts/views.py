@@ -111,7 +111,6 @@ def register(request):
         if form.is_valid():
             user = form.save(commit=False)
             user.backend = 'django.contrib.auth.backends.ModelBackend'
-            user.email_confirmed = False
             user.save()
             send_verification_email(to_user=user)
             alert_email_sent(request)
@@ -129,8 +128,7 @@ def register(request):
 def set_user_password(request):
     from django.contrib.auth.forms import SetPasswordForm
     if request.user.has_usable_password():
-        messages.error(request, 'To set a new password click the "Change password" button below.')
-        return redirect('personal_information')
+        return redirect('password_change')
 
     user = get_object_or_404(User, id=request.user.id)
 
