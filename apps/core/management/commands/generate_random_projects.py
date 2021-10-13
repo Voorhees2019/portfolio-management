@@ -6,8 +6,12 @@ class Command(BaseCommand):
     help = 'Create random projects'
 
     def add_arguments(self, parser):
-        parser.add_argument('total', type=int, help='Indicates the number of projects to be created')
+        # Optional argument
+        parser.add_argument('-n', '--number', type=int, help='Indicates the number of projects to be created')
 
     def handle(self, *args, **kwargs):
-        total = kwargs['total']
-        generate_fake_projects(total)
+        number = kwargs['number']
+        if number:
+            generate_fake_projects(number)
+        else:
+            generate_fake_projects()
