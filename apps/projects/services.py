@@ -23,7 +23,7 @@ def generate_fake_field(field_type: str):
 def get_or_create_industries(industry_names: list[str] = random_industries):
     industries = []
     for industry in industry_names:
-        obj, _ = Industry.objects.get_or_create(title=industry.lower())
+        obj, _ = Industry.objects.get_or_create(title=industry.capitalize())
         industries.append(obj)
     return industries
 
@@ -31,7 +31,7 @@ def get_or_create_industries(industry_names: list[str] = random_industries):
 def get_or_create_technologies(technology_names: list[str] = random_technologies):
     technologies = []
     for technology in technology_names:
-        obj, _ = Technology.objects.get_or_create(title=technology.lower())
+        obj, _ = Technology.objects.get_or_create(title=technology.capitalize())
         technologies.append(obj)
     return technologies
 
