@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from django.core.mail import send_mail, BadHeaderError
 from django.http import HttpResponse
@@ -110,7 +110,7 @@ def register(request):
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
-            # user.backend = 'django.contrib.auth.backends.ModelBackend'
+            user.backend = 'django.contrib.auth.backends.ModelBackend'
             user.save()
             send_verification_email(to_user=user)
             alert_email_sent(request)
@@ -123,6 +123,28 @@ def register(request):
         'form': form,
     }
     return render(request, 'accounts/register.html', context)
+
+
+def set_user_password(request):
+    from django.contrib.auth.forms import SetPasswordForm
+    if request.user.has_usable_password():
+        return redirect('password_change')
+
+    user = get_object_or_404(User, id=request.user.id)
+
+    if request.method == 'POST':
+        form = SetPasswordForm(user, request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your new password has been successfully set')
+            return redirect('personal_information')
+    else:
+        form = SetPasswordForm(user)
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'accounts/set_password.html', context)
 
 
 def email_confirm(request, uidb64, token):
