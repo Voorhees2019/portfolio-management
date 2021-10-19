@@ -49,10 +49,8 @@ class ProjectResource(resources.ModelResource):
         technologies = row.get('technologies')
         industries = row.get('industries')
         # Extract technologies' and industries' names from row
-        technologies = [value.strip(', ') for value in technologies.split(',')]
-        industries = [value.strip(', ') for value in industries.split(',')]
-        technologies = [value.capitalize() for value in technologies if value]
-        industries = [value.capitalize() for value in industries if value]
+        technologies = [value.strip().capitalize() for value in technologies.split(',') if value]
+        industries = [value.strip().capitalize() for value in industries.split(',') if value]
 
         # Change row immediately(capitalize each industry and technology) in order if pass row to the next
         # method, to be able to update project's strange written industries and technologies like 'PYTHON', 'jS'
@@ -66,13 +64,10 @@ class ProjectResource(resources.ModelResource):
             Industry.objects.get_or_create(title=item)
 
         # Transform notes to boolean. If there is nothing in notes, `url_is_active` set to True
-        row['notes'] = False if row['notes'] else True
+        row['notes'] = not row['notes']
 
     def get_instance(self, instance_loader, row):
-        projects = Project.objects.filter(title=row.get('title'), author=row.get('author'))
-        if projects.exists():
-            return projects[0]
-        return None
+        return Project.objects.filter(title=row.get('title'), author_id=self.author).first()
 
     def init_instance(self, row=None):
         instance = super().init_instance(row)
@@ -99,7 +94,7 @@ class ProjectAdmin(ImportExportActionModelAdmin):
 
     def get_form_kwargs(self, form, *args, **kwargs):
         # pass `author` to the kwargs for initial state of the custom confirm form
-        if isinstance(form, self.get_import_form()):
+        if isinstance(form, CustomImportForm):
             if form.is_valid():
                 author = form.cleaned_data['author']
                 kwargs.update({'author': author.id})
