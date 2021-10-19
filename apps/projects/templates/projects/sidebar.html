@@ -1,0 +1,42 @@
+{% load i18n %}
+
+<div class="col-md-4">
+    <!-- Industries -->
+    <div class="row mb-4">
+        <div class="col-11">
+            <h3>Industry</h3>
+            <div class="input-group mb-3">
+                <input type="search" class="form-control rounded col-md-8" aria-label="Industry Search">
+                <button type="button" class="btn btn-outline-danger col-md-4 ml-2">Reset</button>
+            </div>
+            {% for industry in industries %}
+                <div class="d-flex justify-content-between">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="{{ industry.title }}Check">
+                        <label class="form-check-label" for="{{ industry.title }}Check">{{ industry.title }}</label>
+                    </div>
+                    <div class="mr-3"><span class="font-weight-bold">{{ industry.project_set.count }}</span></div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <!-- Technologies -->
+    <div class="row mb-4">
+        <div class="col-11">
+            <h3>Technology</h3>
+            <div class="input-group mb-3">
+                <input type="search" class="form-control rounded col-md-8" aria-label="Technology Search">
+                <button type="button" class="btn btn-outline-danger col-md-4 ml-2">Reset</button>
+            </div>
+            {% for technology in technologies %}
+                <div class="d-flex justify-content-between">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="{{ technology.title }}Check">
+                        <label class="form-check-label" for="{{ technology.title }}Check">{{ technology.title }}</label>
+                    </div>
+                    <div class="mr-3"><span class="font-weight-bold">{{ technology.project_set.count }}</span></div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
