@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+    <div class="row mt-4 mb-4">
+        {% if projects %}
+            <!-- SIDEBAR -->
+            {% include "projects/sidebar.html" with industries=industry_list technologies=technology_list%}
+        {% endif %}
+        <div class="{% if projects %}col-md-8{% else %}col-md-12{% endif %}">
+            {% include 'alerts.html' %}
+            <div class="row">
+                <div class="d-flex justify-content-between w-100">
+                    <div>
+{#                        <div class="btn-group btn-group-toggle" data-toggle="buttons">#}
+{#                            <label class="btn btn-secondary active">#}
+{#                                <input type="radio" name="private" id="private" autocomplete="off" checked>#}
+{#                                {% trans "Private" %}#}
+{#                            </label>#}
+{#                            <label class="btn btn-secondary">#}
+{#                                <input type="radio" name="public" id="public" autocomplete="off">#}
+{#                                {% trans "Public" %}#}
+{#                            </label>#}
+{#                            <label class="btn btn-secondary">#}
+{#                                <input type="radio" name="myset" id="myset" autocomplete="off">#}
+{#                                {% trans "Myset" %}#}
+{#                            </label>#}
+{#                        </div>#}
+                        <div class="btn-group" role="group" aria-label="Basic example">
+                            <a href="{% url 'projects' %}" class="btn btn-secondary {% if '/projects/' == request.path %}active{% endif %}">{% trans "Private" %}</a>
+                            <a href="{% url 'projects_public' %}" class="btn btn-secondary {% if '/projects/public/' == request.path %}active{% endif %}">{% trans "Public" %}</a>
+                            <a href="{% url 'mysets' %}" class="btn btn-secondary {% if '/mysets/' == request.path %}active{% endif %}">{% trans "Myset" %}</a>
+                        </div>
+                        <a href="" class="btn btn-outline-primary ml-2">{% trans "Add new project" %}</a>
+                    </div>
+                    <div>
+                        <a href="" class="btn btn-outline-primary">{% trans "Upload .csv" %}</a>
+                        <a href="" class="btn btn-outline-primary">{% trans "Add new set" %}</a>
+                    </div>
+                </div>
+            </div>
+            <!-- SEARCH -->
+            <div class="row mt-3">
+                <div class="col-md-12 p-4" style="background-color: #FBEEDB;">
+                    <div class="input-group">
+                        <input type="search" class="form-control" placeholder="Search" name="search"
+                               style="background-color: #FBEEDB; border-color: #FFFFFF;border-width: 2px;">
+                        <div class="input-group-append">
+                            <a href="#" class="btn" type="submit"><i class="fa fa-search"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    {% block projects_content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
