@@ -1,0 +1,95 @@
+{% extends "projects/base_projects.html" %}
+{% load i18n static core_tags %}
+
+{% block title %}{% trans "Projects" %}{% endblock %}
+
+{% block projects_content %}
+    {% if projects %}
+        {% for project in projects %}
+            <div class="row mt-2 mb-2">
+                <div class="col-md-3">
+                    <span class="text-muted">Name:</span>
+                </div>
+                <div class="col-md-9">
+                    <div class="d-flex justify-content-between">
+                        <div><span class="font-weight-bold">{{ project.title }}</span></div>
+                        <div>
+                            <a href="" class="btn btn-success btn-sm mr-3">{% trans 'Edit' %}</a>
+                            <a href="" class="btn btn-danger btn-sm">{% trans 'Delete' %}</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-1">
+                <div class="col-md-3">
+                    <span class="text-muted">Industries:</span>
+                </div>
+                <div class="col-md-9">
+                    {% for industry in project.industries.all %}
+                        <a href="">{{ industry.title }}</a>{% include "projects/comma.html" %}
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="row mb-1">
+                <div class="col-md-3">
+                    <span class="text-muted">Description:</span>
+                </div>
+                <div class="col-md-9" style="text-align: justify;">
+                    {{ project.description }}
+                </div>
+            </div>
+            <div class="row mb-1">
+                <div class="col-md-3">
+                    <span class="text-muted">Technologies:</span>
+                </div>
+                <div class="col-md-9">
+                    {% for technology in project.technologies.all %}
+                        <a href="">{{ technology.title }}</a>{% include "projects/comma.html" %}
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-3">
+                    <span class="text-muted">URL:</span>
+                </div>
+                <div class="col-md-9">
+                    {% if not project.url_is_active %}
+                        <i class="fa fa-times"></i>
+                    {% endif %}
+                    <a href="{{ project.url }}">{{ project.url }}</a>
+                </div>
+            </div>
+            <hr>
+        {% endfor %}
+
+{#        <table class="table table-borderless">#}
+{#            <tbody>#}
+{#            {% for project in projects %}#}
+{#                <tr>#}
+{#                    <td class="text-muted">Names:</th>#}
+{#                    <td><span class="font-weight-bold">{{ project.title }}</span></td>#}
+{#                </tr>#}
+{#                <tr>#}
+{#                    <td class="text-muted">Industries:</th>#}
+{#                    <td>iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii</td>#}
+{#                </tr>#}
+{#                <tr>#}
+{#                    <td class="text-muted">Description:</th>#}
+{#                    <td>{{ project.description }}</td>#}
+{#                </tr>#}
+{#                <tr>#}
+{#                    <td class="text-muted">Technologies:</th>#}
+{#                    <td>ttttttttttttttttttttttttttttttttttttttt</td>#}
+{#                </tr>#}
+{#                <tr>#}
+{#                    <td class="text-muted">URL:</th>#}
+{#                    <td><a href="{{ project.url }}">{{ project.url }}</a></td>#}
+{#                </tr>#}
+{#            {% endfor %}#}
+{#                <tr><br></tr>#}
+{#            </tbody>#}
+{#        </table>#}
+    {% else %}
+        <p>You do not have any projects in your portfolio</p>
+    {% endif %}
+{% endblock %}
