@@ -83,7 +83,7 @@ class ProjectAdmin(ImportExportActionModelAdmin):
     list_display_links = ("id", "title")
     list_filter = ("author", "url_is_active", "created_at")
     raw_id_fields = ("industries", "technologies")
-    search_fields = ("title", "author")
+    search_fields = ("title", "description")
     list_per_page = 25
 
     def get_import_form(self):

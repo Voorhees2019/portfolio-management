@@ -190,7 +190,7 @@ USE_HTTPS = False
 # Google integration
 GOOGLE_TAG_MANAGER = os.environ.get('GOOGLE_TAG_MANAGER', '')
 
-# ELASTICSEARCH_URLS = config('ELASTICSEARCH_URLS', default='http://localhost:9200', cast=Csv())
+ELASTICSEARCH_URLS = config('ELASTICSEARCH_URLS', default='http://localhost:9200').split(',')
 # ELASTICSEARCH_INDICES_PREFIX = config('ELASTICSEARCH_INDICES_PREFIX', default=PROJECT_NAME)
 
 SITE_URL = config('SITE_URL', default='')
@@ -223,3 +223,5 @@ SOCIAL_AUTH_PIPELINE = (
 )
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
+
+PAGE_SIZE = 25

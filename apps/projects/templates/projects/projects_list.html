@@ -1,10 +1,13 @@
 {% extends "projects/base_projects.html" %}
 {% load i18n static core_tags %}
-
+{% load i18n static project_tags %}
 {% block title %}{% trans "Projects" %}{% endblock %}
 
 {% block projects_content %}
     {% if projects %}
+        {% if selected_industries or selected_technologies or search_value %}
+            <h3 class="mb-3">Found {{ project_count }} projects</h3>
+        {% endif %}
         {% for project in projects %}
             <div class="row mt-2 mb-2">
                 <div class="col-md-3">
@@ -14,7 +17,7 @@
                     <div class="d-flex justify-content-between">
                         <div><span class="font-weight-bold">{{ project.title }}</span></div>
                         <div>
-                            <a href="" class="btn btn-success btn-sm mr-3">{% trans 'Edit' %}</a>
+                            <a href="" class="btn btn-success btn-sm">{% trans 'Edit' %}</a>
                             <a href="" class="btn btn-danger btn-sm">{% trans 'Delete' %}</a>
                         </div>
                     </div>
@@ -26,7 +29,7 @@
                 </div>
                 <div class="col-md-9">
                     {% for industry in project.industries.all %}
-                        <a href="">{{ industry.title }}</a>{% include "projects/comma.html" %}
+                        <a href="" class="text-decoration-none">{{ industry.title }}</a>{% include "projects/comma.html" %}
                     {% endfor %}
                 </div>
             </div>
@@ -44,7 +47,7 @@
                 </div>
                 <div class="col-md-9">
                     {% for technology in project.technologies.all %}
-                        <a href="">{{ technology.title }}</a>{% include "projects/comma.html" %}
+                        <a href="" class="text-decoration-none">{{ technology.title }}</a>{% include "projects/comma.html" %}
                     {% endfor %}
                 </div>
             </div>
@@ -62,34 +65,63 @@
             <hr>
         {% endfor %}
 
-{#        <table class="table table-borderless">#}
-{#            <tbody>#}
-{#            {% for project in projects %}#}
-{#                <tr>#}
-{#                    <td class="text-muted">Names:</th>#}
-{#                    <td><span class="font-weight-bold">{{ project.title }}</span></td>#}
-{#                </tr>#}
-{#                <tr>#}
-{#                    <td class="text-muted">Industries:</th>#}
-{#                    <td>iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii</td>#}
-{#                </tr>#}
-{#                <tr>#}
-{#                    <td class="text-muted">Description:</th>#}
-{#                    <td>{{ project.description }}</td>#}
-{#                </tr>#}
-{#                <tr>#}
-{#                    <td class="text-muted">Technologies:</th>#}
-{#                    <td>ttttttttttttttttttttttttttttttttttttttt</td>#}
-{#                </tr>#}
-{#                <tr>#}
-{#                    <td class="text-muted">URL:</th>#}
-{#                    <td><a href="{{ project.url }}">{{ project.url }}</a></td>#}
-{#                </tr>#}
-{#            {% endfor %}#}
-{#                <tr><br></tr>#}
-{#            </tbody>#}
-{#        </table>#}
+        <!-- Pagination -->
+        <div class="row">
+            <div class="col-md-12">
+                <ul class="pagination justify-content-center">
+                    {% if request.GET.page|to_int > 1 %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="{% set_page_parameter url=request.get_full_path page_num=1 %}"
+                               aria-label="First Page">
+                                <span aria-hidden="true">1</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="{% set_page_parameter url=request.get_full_path page_num=request.GET.page|to_int|prev_page_num %}"
+                               aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link">&laquo;</a>
+                        </li>
+                    {% endif %}
+                    <li class="page-item active">
+                        <a class="page-link" href="">
+                            {{ request.GET.page|to_int }}
+                            <span class="sr-only">(current)</span>
+                        </a>
+                    </li>
+                    {% get_last_page_num project_count page_size as last_page %}
+                    {% if request.GET.page|to_int < last_page %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="{% set_page_parameter url=request.get_full_path page_num=request.GET.page|to_int|next_page_num %}"
+                               aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="{% set_page_parameter url=request.get_full_path page_num=last_page %}"
+                               aria-label="Last Page">
+                                <span aria-hidden="true">{{ last_page }}</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link">&raquo;</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    {% elif nothing_matched %}
+        <p>No matches found</p>
     {% else %}
-        <p>You do not have any projects in your portfolio</p>
+        <p>You do not have any projects in your portfolio yet.</p>
     {% endif %}
 {% endblock %}

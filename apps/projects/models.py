@@ -1,3 +1,4 @@
+import json
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -36,6 +37,20 @@ class Project(models.Model):
     created_at = models.DateTimeField(_('Date created'), auto_now_add=True)
     updated_at = models.DateTimeField(_('Date updated'), auto_now=True)
     is_private = models.BooleanField(_('Private'), default=True)
+
+    def get_elasticsearch_document(self):
+        doc = {
+            'title': self.title,
+            'description': self.description,
+            'industries': list(self.industries.values_list("id", flat=True)),
+            'technologies': list(self.technologies.values_list("id", flat=True)),
+        }
+        return json.dumps(doc)
+
+    def save(self, *args, **kwargs):
+        from .utils import update_elastic_document
+        super().save(*args, **kwargs)
+        update_elastic_document(self)
 
     def __str__(self):
         return f"{self.title}"
