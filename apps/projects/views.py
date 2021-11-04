@@ -37,7 +37,7 @@ def get_additional_filters(unfiltered_agg: dict, filtered_agg: dict, selected_id
         # skip selected objects
         if unfiltered_obj.id in selected_ids:
             continue
-        if unfiltered_obj in list(zip(*filtered_list))[0]:
+        if unfiltered_obj in [sublist[0] for sublist in filtered_list]:
             # find index of sublist with unfiltered_obj in filtered_list
             for sublist_index in range(len(filtered_list)):
                 if filtered_list[sublist_index][0] == unfiltered_obj:
