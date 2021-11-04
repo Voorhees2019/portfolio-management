@@ -217,9 +217,9 @@ def projects(request):
     context.update(technologies=technologies)
 
     if request.path == reverse('projects'):
-        context.update(private_tab=True)
+        context.update(current_tab='private')
     elif request.path == reverse('projects_public'):
-        context.update(public_tab=True)
+        context.update(current_tab='public')
 
     return render(request, 'projects/projects_list.html', context)
 

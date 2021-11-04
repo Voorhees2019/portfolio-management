@@ -16,11 +16,11 @@
                     <div>
                         <div class="btn-group" role="group" aria-label="Basic example">
                             <a href="{% url 'projects' %}"
-                               class="btn btn-secondary {% if private_tab %}active{% endif %}">{% trans "Private" %}</a>
+                               class="btn btn-secondary {% if current_tab == "private" %}active{% endif %}">{% trans "Private" %}</a>
                             <a href="{% url 'projects_public' %}"
-                               class="btn btn-secondary {% if public_tab %}active{% endif %}">{% trans "Public" %}</a>
+                               class="btn btn-secondary {% if current_tab == "public" %}active{% endif %}">{% trans "Public" %}</a>
                             <a href="{% url 'mysets' %}"
-                               class="btn btn-secondary {% if myset_tab %}active{% endif %}">{% trans "Myset" %}</a>
+                               class="btn btn-secondary {% if current_tab == "myset" %}active{% endif %}">{% trans "Myset" %}</a>
                         </div>
                         <a href="" class="btn btn-outline-primary ml-2">{% trans "Add new project" %}</a>
                     </div>
