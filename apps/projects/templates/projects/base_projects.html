@@ -3,22 +3,24 @@
 
 {% block content %}
     <div class="row mt-4 mb-4">
-        {% if projects or nothing_matched %}
-            <!-- SIDEBAR -->
-            {% include "projects/filters.html" with industries=industries technologies=technologies %}
-        {% endif %}
-        <div class="{% if projects or nothing_matched %}col-md-8{% else %}col-md-12{% endif %}">
+        <!-- FILTERS -->
+        <div class="col-md-4">
+            <div class="row mb-4">
+                {% include "projects/filters.html" with industries=industries technologies=technologies %}
+            </div>
+        </div>
+        <div class="col-md-8">
             {% include 'alerts.html' %}
             <div class="row">
                 <div class="d-flex justify-content-between w-100">
                     <div>
                         <div class="btn-group" role="group" aria-label="Basic example">
                             <a href="{% url 'projects' %}"
-                               class="btn btn-secondary {% if '/projects/' == request.path %}active{% endif %}">{% trans "Private" %}</a>
+                               class="btn btn-secondary {% if private_tab %}active{% endif %}">{% trans "Private" %}</a>
                             <a href="{% url 'projects_public' %}"
-                               class="btn btn-secondary {% if '/projects/public/' == request.path %}active{% endif %}">{% trans "Public" %}</a>
+                               class="btn btn-secondary {% if public_tab %}active{% endif %}">{% trans "Public" %}</a>
                             <a href="{% url 'mysets' %}"
-                               class="btn btn-secondary {% if '/mysets/' == request.path %}active{% endif %}">{% trans "Myset" %}</a>
+                               class="btn btn-secondary {% if myset_tab %}active{% endif %}">{% trans "Myset" %}</a>
                         </div>
                         <a href="" class="btn btn-outline-primary ml-2">{% trans "Add new project" %}</a>
                     </div>

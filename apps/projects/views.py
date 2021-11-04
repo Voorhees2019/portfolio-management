@@ -2,52 +2,52 @@ from typing import Union
 from django.conf import settings
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.urls import reverse
 from .models import Project, Industry, Technology
 from .utils import search_docs
 
 
 def set_exact_objects_order(elastic_objs_ids: list, model: Union[Project, Industry, Technology]) -> list:
     """Returns list of objects in the exact order of returned elastic's sorted projects"""
-    objects = []
-    for elastic_obj_id in elastic_objs_ids:
-        for obj in model.objects.filter(id__in=elastic_objs_ids):
-            if obj.id == elastic_obj_id:
-                objects.append(obj)
+    objs_dict = {x.id: x for x in model.objects.filter(id__in=elastic_objs_ids)}
+    objects = [objs_dict[i] for i in elastic_objs_ids if i in objs_dict]
     return objects
 
 
-def transform_aggregation(aggregation: dict, model: Union[Industry, Technology]) -> dict:
+def transform_aggregation(aggregation: dict, model: Union[Industry, Technology]) -> list[
+    list[Union[Industry, Technology, int]]]:
     """
     Retrieves objects' indices and doc_counts from aggregation and
-    returns dict where key = postgres object, value = object's doc_count from aggregation
+    returns list of lists with postgres object and object's doc_count from aggregation
     """
     ids = [int(bucket.get('key')) for bucket in aggregation]
     doc_counts = [bucket.get('doc_count') for bucket in aggregation]
     objs = set_exact_objects_order(ids, model)
-    d = {}
-    for i in range(len(objs)):
-        d.update({objs[i]: doc_counts[i]})
-    return d
+    return [[objs[i], doc_counts[i]] for i in range(len(objs))]
 
 
 def get_additional_filters(unfiltered_agg: dict, filtered_agg: dict, selected_ids: list[int],
-                           model: Union[Industry, Technology]) -> dict:
-    """Subtracts filtered objects from unfiltered in order to get additional filters' count"""
-    unfiltered_objs = transform_aggregation(unfiltered_agg, model)
-    filtered_objs = transform_aggregation(filtered_agg, model)
+                           model: Union[Industry, Technology]) -> list:
+    """Subtracts filtered doc_count from unfiltered doc_dount in corresponding aggregations
+    in order to get additional filters' count"""
+    unfiltered_list = transform_aggregation(unfiltered_agg, model)
+    filtered_list = transform_aggregation(filtered_agg, model)
 
-    # get additional objects
-    for obj, doc_count in unfiltered_objs.items():
+    for i, (unfiltered_obj, doc_count) in enumerate(unfiltered_list):
         # skip selected objects
-        if obj.id in selected_ids:
+        if unfiltered_obj.id in selected_ids:
             continue
-        # subtract filtered from unfiltered
-        if obj in filtered_objs:
-            unfiltered_objs[obj] = unfiltered_objs[obj] - filtered_objs[obj]
+        if unfiltered_obj in list(zip(*filtered_list))[0]:
+            # find index of sublist with unfiltered_obj in filtered_list
+            for sublist_index in range(len(filtered_list)):
+                if filtered_list[sublist_index][0] == unfiltered_obj:
+                    # subtract filtered from unfiltered doc_count
+                    unfiltered_list[i][1] = unfiltered_list[i][1] - filtered_list[sublist_index][1]
+                    break
 
     # sort filters: at the top are selected ones and then additional filters in descending order
-    unfiltered_objs = dict(sorted(unfiltered_objs.items(), key=lambda x: (x[0].id in selected_ids, x[1]), reverse=True))
-    return unfiltered_objs
+    unfiltered_list = sorted(unfiltered_list, key=lambda x: (x[0].id in selected_ids, x[1]), reverse=True)
+    return unfiltered_list
 
 
 def projects(request):
@@ -183,7 +183,7 @@ def projects(request):
         proj_ids = [int(doc.get('_id')) for doc in result['hits']['hits']]
         project_list = set_exact_objects_order(proj_ids, Project)
     else:  # no matches found
-        context.update(nothing_matched=True)
+        context.update(no_search_result=True)
     context.update(projects=project_list)
 
     # process elastic unfiltered_industries aggregation
@@ -215,6 +215,12 @@ def projects(request):
 
     context.update(industries=industries)
     context.update(technologies=technologies)
+
+    if request.path == reverse('projects'):
+        context.update(private_tab=True)
+    elif request.path == reverse('projects_public'):
+        context.update(public_tab=True)
+
     return render(request, 'projects/projects_list.html', context)
 
 

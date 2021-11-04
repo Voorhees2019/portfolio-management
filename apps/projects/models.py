@@ -48,9 +48,19 @@ class Project(models.Model):
         return json.dumps(doc)
 
     def save(self, *args, **kwargs):
-        from .utils import update_elastic_document
+        refresh_index = kwargs.pop('refresh_index', True)
+        # Control admin import csv. Do not create elastic documents if
+        # transaction will rollback (first dry_run import to preview changes)
+        dry_index_update = kwargs.pop('dry_index_update', False)
+
+        self._refresh_index = refresh_index
+        self._dry_index_update = dry_index_update  # to control signal m2m_changed
+
         super().save(*args, **kwargs)
-        update_elastic_document(self)
+
+        if not dry_index_update:
+            from .utils import update_elastic_document
+            update_elastic_document(self, refresh_index=refresh_index)
 
     def __str__(self):
         return f"{self.title}"

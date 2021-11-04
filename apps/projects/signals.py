@@ -10,12 +10,9 @@ def delete_document(sender, instance, **kwargs):
 
 
 @receiver(m2m_changed, sender=Project.industries.through)
-def update_document(sender, instance, **kwargs):
-    from .utils import update_elastic_document
-    update_elastic_document(instance)
-
-
 @receiver(m2m_changed, sender=Project.technologies.through)
-def update_document(sender, instance, **kwargs):
-    from .utils import update_elastic_document
-    update_elastic_document(instance)
+def update_document(sender, instance, action, **kwargs):
+    if action == 'post_add':
+        refresh_index = getattr(instance, '_refresh_index', True)
+        dry_index_update = getattr(instance, '_dry_index_update', False)
+        instance.save(refresh_index=refresh_index, dry_index_update=dry_index_update)

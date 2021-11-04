@@ -4,10 +4,12 @@
 {% block title %}{% trans "Projects" %}{% endblock %}
 
 {% block projects_content %}
-    {% if projects %}
-        {% if selected_industries or selected_technologies or search_value %}
-            <h3 class="mb-3">Found {{ project_count }} projects</h3>
-        {% endif %}
+    {% if no_search_result %}
+        <div class="alert alert-success" role="alert">
+            No matches found
+        </div>
+    {% elif projects %}
+        <h3 class="mb-3">Found {{ project_count }} projects</h3>
         {% for project in projects %}
             <div class="row mt-2 mb-2">
                 <div class="col-md-3">
@@ -29,7 +31,8 @@
                 </div>
                 <div class="col-md-9">
                     {% for industry in project.industries.all %}
-                        <a href="" class="text-decoration-none">{{ industry.title }}</a>{% include "projects/comma.html" %}
+                        <a href="{% set_query_parameter url=request.get_full_path param_name='industries' param_value=industry.id %}"
+                           class="text-decoration-none">{{ industry.title }}</a>{% if not forloop.last %}, {% endif %}
                     {% endfor %}
                 </div>
             </div>
@@ -47,7 +50,8 @@
                 </div>
                 <div class="col-md-9">
                     {% for technology in project.technologies.all %}
-                        <a href="" class="text-decoration-none">{{ technology.title }}</a>{% include "projects/comma.html" %}
+                        <a href="{% set_query_parameter url=request.get_full_path param_name='technologies' param_value=technology.id %}"
+                           class="text-decoration-none">{{ technology.title }}</a>{% if not forloop.last %}, {% endif %}
                     {% endfor %}
                 </div>
             </div>
@@ -69,59 +73,48 @@
         <div class="row">
             <div class="col-md-12">
                 <ul class="pagination justify-content-center">
-                    {% if request.GET.page|to_int > 1 %}
-                        <li class="page-item">
-                            <a class="page-link"
-                               href="{% set_page_parameter url=request.get_full_path page_num=1 %}"
-                               aria-label="First Page">
-                                <span aria-hidden="true">1</span>
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link"
-                               href="{% set_page_parameter url=request.get_full_path page_num=request.GET.page|to_int|prev_page_num %}"
-                               aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
-                            </a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled">
-                            <a class="page-link">&laquo;</a>
-                        </li>
-                    {% endif %}
-                    <li class="page-item active">
-                        <a class="page-link" href="">
-                            {{ request.GET.page|to_int }}
-                            <span class="sr-only">(current)</span>
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="{% set_query_parameter url=request.get_full_path param_name='page' param_value=1 %}"
+                           aria-label="First Page">
+                            <span aria-hidden="true">First</span>
+                        </a>
+                    </li>
+                    <li class="page-item {% if request.GET.page|int_or_1 <= 1 %}disabled{% endif %}">
+                        <a class="page-link"
+                           href="{% set_query_parameter url=request.get_full_path param_name='page' param_value=request.GET.page|int_or_1|subtract:1 %}"
+                           aria-label="Previous">
+                            <span aria-hidden="true">Previous</span>
                         </a>
                     </li>
                     {% get_last_page_num project_count page_size as last_page %}
-                    {% if request.GET.page|to_int < last_page %}
-                        <li class="page-item">
-                            <a class="page-link"
-                               href="{% set_page_parameter url=request.get_full_path page_num=request.GET.page|to_int|next_page_num %}"
-                               aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link"
-                               href="{% set_page_parameter url=request.get_full_path page_num=last_page %}"
-                               aria-label="Last Page">
-                                <span aria-hidden="true">{{ last_page }}</span>
-                            </a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled">
-                            <a class="page-link">&raquo;</a>
-                        </li>
-                    {% endif %}
+                    <li class="page-item">
+                        <span class="page-link">{{ request.GET.page|int_or_1 }} &#47; {{ last_page }}</span>
+                    </li>
+                    <li class="page-item {% if request.GET.page|int_or_1 >= last_page %}disabled{% endif %}">
+                        <a class="page-link"
+                           href="{% set_query_parameter url=request.get_full_path param_name='page' param_value=request.GET.page|int_or_1|add:1 %}"
+                           aria-label="Next">
+                            <span aria-hidden="true">Next</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="{% set_query_parameter url=request.get_full_path param_name='page' param_value=last_page %}"
+                           aria-label="Last Page">
+                            <span aria-hidden="true">Last</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
-    {% elif nothing_matched %}
-        <p>No matches found</p>
     {% else %}
-        <p>You do not have any projects in your portfolio yet.</p>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="alert alert-primary" role="alert">
+                    You do not have any projects in your portfolio yet.
+                </div>
+            </div>
+        </div>
     {% endif %}
 {% endblock %}
