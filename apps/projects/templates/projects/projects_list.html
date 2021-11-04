@@ -1,0 +1,120 @@
+{% extends "projects/base_projects.html" %}
+{% load i18n static core_tags %}
+{% load i18n static project_tags %}
+{% block title %}{% trans "Projects" %}{% endblock %}
+
+{% block projects_content %}
+    {% if no_search_result %}
+        <div class="alert alert-success" role="alert">
+            No matches found
+        </div>
+    {% elif projects %}
+        <h3 class="mb-3">Found {{ project_count }} projects</h3>
+        {% for project in projects %}
+            <div class="row mt-2 mb-2">
+                <div class="col-md-3">
+                    <span class="text-muted">Name:</span>
+                </div>
+                <div class="col-md-9">
+                    <div class="d-flex justify-content-between">
+                        <div><span class="font-weight-bold">{{ project.title }}</span></div>
+                        <div>
+                            <a href="" class="btn btn-success btn-sm">{% trans 'Edit' %}</a>
+                            <a href="" class="btn btn-danger btn-sm">{% trans 'Delete' %}</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-1">
+                <div class="col-md-3">
+                    <span class="text-muted">Industries:</span>
+                </div>
+                <div class="col-md-9">
+                    {% for industry in project.industries.all %}
+                        <a href="{% set_query_parameter url=request.get_full_path param_name='industries' param_value=industry.id %}"
+                           class="text-decoration-none">{{ industry.title }}</a>{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="row mb-1">
+                <div class="col-md-3">
+                    <span class="text-muted">Description:</span>
+                </div>
+                <div class="col-md-9" style="text-align: justify;">
+                    {{ project.description }}
+                </div>
+            </div>
+            <div class="row mb-1">
+                <div class="col-md-3">
+                    <span class="text-muted">Technologies:</span>
+                </div>
+                <div class="col-md-9">
+                    {% for technology in project.technologies.all %}
+                        <a href="{% set_query_parameter url=request.get_full_path param_name='technologies' param_value=technology.id %}"
+                           class="text-decoration-none">{{ technology.title }}</a>{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-3">
+                    <span class="text-muted">URL:</span>
+                </div>
+                <div class="col-md-9">
+                    {% if not project.url_is_active %}
+                        <i class="fa fa-times"></i>
+                    {% endif %}
+                    <a href="{{ project.url }}">{{ project.url }}</a>
+                </div>
+            </div>
+            <hr>
+        {% endfor %}
+
+        <!-- Pagination -->
+        <div class="row">
+            <div class="col-md-12">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="{% set_query_parameter url=request.get_full_path param_name='page' param_value=1 %}"
+                           aria-label="First Page">
+                            <span aria-hidden="true">First</span>
+                        </a>
+                    </li>
+                    <li class="page-item {% if request.GET.page|int_or_1 <= 1 %}disabled{% endif %}">
+                        <a class="page-link"
+                           href="{% set_query_parameter url=request.get_full_path param_name='page' param_value=request.GET.page|int_or_1|subtract:1 %}"
+                           aria-label="Previous">
+                            <span aria-hidden="true">Previous</span>
+                        </a>
+                    </li>
+                    {% get_last_page_num project_count page_size as last_page %}
+                    <li class="page-item">
+                        <span class="page-link">{{ request.GET.page|int_or_1 }} &#47; {{ last_page }}</span>
+                    </li>
+                    <li class="page-item {% if request.GET.page|int_or_1 >= last_page %}disabled{% endif %}">
+                        <a class="page-link"
+                           href="{% set_query_parameter url=request.get_full_path param_name='page' param_value=request.GET.page|int_or_1|add:1 %}"
+                           aria-label="Next">
+                            <span aria-hidden="true">Next</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="{% set_query_parameter url=request.get_full_path param_name='page' param_value=last_page %}"
+                           aria-label="Last Page">
+                            <span aria-hidden="true">Last</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col-md-12">
+                <div class="alert alert-primary" role="alert">
+                    You do not have any projects in your portfolio yet.
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+    <div class="row mt-4 mb-4">
+        <!-- FILTERS -->
+        <div class="col-md-4">
+            <div class="row mb-4">
+                {% include "projects/filters.html" with industries=industries technologies=technologies %}
+            </div>
+        </div>
+        <div class="col-md-8">
+            {% include 'alerts.html' %}
+            <div class="row">
+                <div class="d-flex justify-content-between w-100">
+                    <div>
+                        <div class="btn-group" role="group" aria-label="Basic example">
+                            <a href="{% url 'projects' %}"
+                               class="btn btn-secondary {% if current_tab == "private" %}active{% endif %}">{% trans "Private" %}</a>
+                            <a href="{% url 'projects_public' %}"
+                               class="btn btn-secondary {% if current_tab == "public" %}active{% endif %}">{% trans "Public" %}</a>
+                            <a href="{% url 'mysets' %}"
+                               class="btn btn-secondary {% if current_tab == "myset" %}active{% endif %}">{% trans "Myset" %}</a>
+                        </div>
+                        <a href="" class="btn btn-outline-primary ml-2">{% trans "Add new project" %}</a>
+                    </div>
+                    <div>
+                        <a href="" class="btn btn-outline-primary">{% trans "Upload .csv" %}</a>
+                        <a href="" class="btn btn-outline-primary">{% trans "Add new set" %}</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEARCH -->
+            <div class="row mt-3">
+                <div class="col-md-12 p-4" style="background-color: #FBEEDB;">
+                    <div class="input-group">
+                        <input id="searchProject" type="search" class="form-control"
+                               placeholder="Search by project name or description" name="search"
+                               {% if search_value %}value="{{ search_value }}"{% endif %}
+                               style="background-color: #FBEEDB; border-color: #FFFFFF;border-width: 2px;">
+                        <div class="input-group-append">
+                            <button id="searchProjectSubmit" class="btn" type="submit"><i class="fa fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PROJECT LIST -->
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    {% block projects_content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script type="text/javascript">
+        // reset industries filter
+        document.getElementById('resetIndustries').onclick = function () {
+            let checkboxes = document.getElementsByName('industries');
+            for (let checkbox of checkboxes) {
+                checkbox.checked = false;
+            }
+            this.form.submit();
+        }
+
+        // reset technologies filter
+        document.getElementById('resetTechnologies').onclick = function () {
+            let checkboxes = document.getElementsByName('technologies');
+            for (let checkbox of checkboxes) {
+                checkbox.checked = false;
+            }
+            this.form.submit();
+        }
+
+        // search by industry name
+        function searchIndustry() {
+            let input, filter, div, labels, label, i, txtValue;
+            input = document.getElementById("industrySearchField");
+            filter = input.value.toLowerCase();
+            div = document.getElementById("industryBlock");
+            labels = div.getElementsByTagName("label");
+            for (i = 0; i < labels.length; i++) {
+                label = labels[i];
+                txtValue = label.textContent || label.innerText;
+                if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                    labels[i].parentElement.parentElement.style.display = "";
+                } else {
+                    labels[i].parentElement.parentElement.setAttribute('style', 'display:none !important');
+                }
+            }
+        }
+
+        // search by technology name
+        function searchTechnology() {
+            let input, filter, div, labels, label, i, txtValue;
+            input = document.getElementById("technologySearchField");
+            filter = input.value.toLowerCase();
+            div = document.getElementById("technologyBlock");
+            labels = div.getElementsByTagName("label");
+            for (i = 0; i < labels.length; i++) {
+                label = labels[i];
+                txtValue = label.textContent || label.innerText;
+                if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                    labels[i].parentElement.parentElement.style.display = "";
+                } else {
+                    labels[i].parentElement.parentElement.setAttribute('style', 'display:none !important');
+                }
+            }
+        }
+
+        // execute button click on "Enter hit" at the search project field
+        document.getElementById("searchProject")
+            .addEventListener("keyup", function (event) {
+                event.preventDefault();
+                if (event.keyCode === 13) {
+                    document.getElementById("searchProjectSubmit").click();
+                }
+            });
+
+        // search by project name or description
+        document.getElementById("searchProjectSubmit").onclick = function () {
+            let input = document.getElementById("searchProject");
+            let form = document.getElementById("filterForm");
+            let hiddenInput = form.querySelector("#hiddenProjectSearch");
+            hiddenInput.value = input.value
+            form.submit();
+        }
+
+    </script>
+{% endblock %}

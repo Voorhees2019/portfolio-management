@@ -1,0 +1,81 @@
+{% load i18n %}
+
+<div class="col-11">
+    <form id="filterForm" action="" method="GET">
+        <!-- Industries -->
+        <h3>Industry</h3>
+        <div class="input-group mb-3">
+            <input id="industrySearchField" type="text" class="form-control rounded col-md-8"
+                   aria-label="Industry Search" onkeyup="searchIndustry()" placeholder="Search Industry">
+            <button id="resetIndustries" type="button"
+                    class="btn btn-outline-danger col-md-4 ml-2">{% trans "Reset" %}</button>
+        </div>
+        {% if not projects %}
+            <div class="alert alert-info" role="alert">
+                No Industry filters found
+            </div>
+        {% else %}
+            <div id="industryBlock" style="max-height: 400px; overflow-y: auto;">
+                {% for industry, doc_count in industries %}
+                    <div class="d-flex justify-content-between" style="display: none;">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="industries"
+                                   value="{{ industry.id }}"
+                                   id="{{ industry.id }}Check"
+                                   {% if industry.id in selected_industries %}checked{% endif %}
+{#                                           {% if doc_count == 0 %}disabled{% endif %}#}
+                                   onclick="this.form.submit()">
+                            <label class="form-check-label"
+                                   for="{{ industry.id }}Check">{{ industry.title }}</label>
+                        </div>
+                        <div class="mr-3">
+                            <span class="font-weight-bold">
+                                {% if selected_industries and doc_count != 0 and industry.id not in selected_industries %}+{% endif %}
+                                {{ doc_count }}
+                            </span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Technologies -->
+        <h3 class="mt-3">Technology</h3>
+        <div class="input-group mb-3">
+            <input id="technologySearchField" type="search" class="form-control rounded col-md-8"
+                   aria-label="Technology Search" onkeyup="searchTechnology()" placeholder="Search Technology">
+            <button id="resetTechnologies" type="button"
+                    class="btn btn-outline-danger col-md-4 ml-2">{% trans "Reset" %}</button>
+        </div>
+        {% if not projects %}
+            <div class="alert alert-info" role="alert">
+                No Technology filters found
+            </div>
+        {% else %}
+            <div id="technologyBlock" style="max-height: 400px; overflow-y: auto;">
+                {% for technology, doc_count in technologies %}
+                    <div class="d-flex justify-content-between">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="technologies"
+                                   value="{{ technology.id }}"
+                                   id="{{ technology.id }}Check"
+                                   {% if technology.id in selected_technologies %}checked{% endif %}
+{#                                           {% if doc_count == 0 %}disabled{% endif %}#}
+                                   onclick="this.form.submit()">
+                            <label class="form-check-label"
+                                   for="{{ technology.id }}Check">{{ technology.title }}</label>
+                        </div>
+                        <div class="mr-3">
+                            <span class="font-weight-bold">
+                                {% if selected_technologies and doc_count != 0 and technology.id not in selected_technologies %}+{% endif %}
+                                {{ doc_count }}
+                            </span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <input id="hiddenProjectSearch" type="hidden" name="search"
+               {% if search_value %}value="{{ search_value }}"{% endif %}>
+    </form>
+</div>
