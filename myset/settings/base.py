@@ -190,7 +190,7 @@ USE_HTTPS = False
 # Google integration
 GOOGLE_TAG_MANAGER = os.environ.get('GOOGLE_TAG_MANAGER', '')
 
-# ELASTICSEARCH_URLS = config('ELASTICSEARCH_URLS', default='http://localhost:9200', cast=Csv())
+ELASTICSEARCH_URLS = config('ELASTICSEARCH_URLS', default='http://localhost:9200').split(',')
 # ELASTICSEARCH_INDICES_PREFIX = config('ELASTICSEARCH_INDICES_PREFIX', default=PROJECT_NAME)
 
 SITE_URL = config('SITE_URL', default='')
@@ -214,6 +214,7 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.auth_allowed',
     'social_core.pipeline.social_auth.social_user',
     'social_core.pipeline.user.get_username',
+    'social_core.pipeline.social_auth.associate_by_email',
     'social_core.pipeline.user.create_user',
     'apps.accounts.pipeline.user.confirm_email',  # email is already verified by LinkedIn. Set `email_confirmed` to True
     'social_core.pipeline.social_auth.associate_user',
@@ -222,3 +223,5 @@ SOCIAL_AUTH_PIPELINE = (
 )
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
+
+PAGE_SIZE = 25

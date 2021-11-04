@@ -4,6 +4,8 @@ from faker import Faker
 from .models import Industry, Technology, Project
 from apps.accounts.models import User
 from .demo_data import random_industries, random_technologies
+from .utils import refresh_elastic_index
+
 
 fake = Faker()
 
@@ -43,14 +45,21 @@ def generate_fake_projects(projects_number: int = 10):
 
     projects = []
     for _ in range(projects_number):
-        proj, _ = Project.objects.get_or_create(
-            title=generate_fake_field('title'),
-            description=generate_fake_field('description'),
-            author=User.objects.first(),
-            url=generate_fake_field('url'),
-            url_is_active=random.choice([True, False])
-        )
+        try:
+            proj = Project.objects.get(
+                title=generate_fake_field('title')
+            )
+        except Project.DoesNotExist:
+            proj = Project(
+                title=generate_fake_field('title'),
+                description=generate_fake_field('description'),
+                author=User.objects.first(),
+                url=generate_fake_field('url'),
+                url_is_active=random.choice([True, False])
+            )
+            proj.save(refresh_index=False)
         projects.append(proj)
+    refresh_elastic_index()
 
     for project in projects:
         for i in range(random.randint(1, 10)):
