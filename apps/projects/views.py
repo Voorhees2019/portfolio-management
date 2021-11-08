@@ -86,12 +86,13 @@ def projects(request):
     project_search_text = request.GET.get("search")
 
     # ElasticSearch query
+    author_filter = {"terms": {"author": [request.user.id]}}
     query = {
         "from": (int(request.GET.get('page', 1)) - 1) * settings.PAGE_SIZE,
         "size": settings.PAGE_SIZE,
         "query": {
             "bool": {
-                "must": []
+                "must": [author_filter]
             }
         },
         "aggs": {
@@ -116,7 +117,11 @@ def projects(request):
                                 "terms": {"field": "industries", "size": 1000}
                             }
                         },
-                        "filter": {"match_all": {}}
+                        "filter": {
+                            "bool": {
+                                "must": [author_filter]
+                            }
+                        }
                     }
                 }
             },
@@ -129,15 +134,16 @@ def projects(request):
                                 "terms": {"field": "technologies", "size": 1000}
                             }
                         },
-                        "filter": {"match_all": {}}
+                        "filter": {
+                            "bool": {
+                                "must": [author_filter]
+                            }
+                        }
                     }
                 }
             }
         }
     }
-
-    if not selected_industries_ids and not selected_technologies_ids and not project_search_text:
-        query['query'] = {"match_all": {}}
 
     if selected_industries_ids:
         context.update(selected_industries=selected_industries_ids)
@@ -145,17 +151,9 @@ def projects(request):
         query['query']['bool']['must'].append({"terms": {"industries": selected_industries_ids}})
         # aggregation if no industries were checked
         if selected_technologies_ids:
-            query['aggs']['unfiltered_industries']['aggs']['all_industries']['filter'] = {
-                "bool": {
-                    "must": [
-                        {"terms": {"technologies": selected_technologies_ids}}
-                    ]
-                }
-            }
-        else:
-            query['aggs']['unfiltered_industries']['aggs']['all_industries']['filter'] = {
-                "match_all": {}
-            }
+            query['aggs']['unfiltered_industries']['aggs']['all_industries']['filter']['bool']['must'].append(
+                {"terms": {"technologies": selected_technologies_ids}}
+            )
 
     if selected_technologies_ids:
         context.update(selected_technologies=selected_technologies_ids)
@@ -163,21 +161,13 @@ def projects(request):
         query['query']['bool']['must'].append({"terms": {"technologies": selected_technologies_ids}})
         # aggregation if no technologies were checked
         if selected_industries_ids:
-            query['aggs']['unfiltered_technologies']['aggs']['all_technologies']['filter'] = {
-                "bool": {
-                    "must": [
-                        {"terms": {"industries": selected_industries_ids}}
-                    ]
-                }
-            }
-        else:
-            query['aggs']['unfiltered_technologies']['aggs']['all_technologies']['filter'] = {
-                "match_all": {}
-            }
+            query['aggs']['unfiltered_technologies']['aggs']['all_technologies']['filter']['bool']['must'].append(
+                {"terms": {"industries": selected_industries_ids}}
+            )
 
     if project_search_text:
         context.update(search_value=project_search_text)
-        match_query = {
+        search_text_query = {
             "bool": {
                 "should": [
                     {"match": {"title": project_search_text}},
@@ -185,21 +175,13 @@ def projects(request):
                 ]
             }
         }
-        # add match fields to query
-        query['query']['bool']['must'].append(match_query)
-        # add match fields to unfiltered aggregations
-        if selected_industries_ids:
-            if selected_technologies_ids:
-                query['aggs']['unfiltered_industries']['aggs']['all_industries']['filter']['bool']['must'].append(
-                    match_query)
-            else:
-                query['aggs']['unfiltered_industries']['aggs']['all_industries']['filter'] = match_query
-        if selected_technologies_ids:
-            if selected_industries_ids:
-                query['aggs']['unfiltered_technologies']['aggs']['all_technologies']['filter']['bool']['must'].append(
-                    match_query)
-            else:
-                query['aggs']['unfiltered_technologies']['aggs']['all_technologies']['filter'] = match_query
+        # add search fields to query
+        query['query']['bool']['must'].append(search_text_query)
+        # add search fields to unfiltered aggregations
+        query['aggs']['unfiltered_industries']['aggs']['all_industries']['filter']['bool']['must'].append(
+            search_text_query)
+        query['aggs']['unfiltered_technologies']['aggs']['all_technologies']['filter']['bool']['must'].append(
+            search_text_query)
 
     # process elastic query
     result = search_docs(query)

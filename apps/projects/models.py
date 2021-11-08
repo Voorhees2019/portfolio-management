@@ -42,6 +42,8 @@ class Project(models.Model):
         doc = {
             'title': self.title,
             'description': self.description,
+            'author': self.author.id,
+            'is_private': 'true' if self.is_private else 'false',
             'industries': list(self.industries.values_list("id", flat=True)),
             'technologies': list(self.technologies.values_list("id", flat=True)),
         }
