@@ -1,5 +1,6 @@
 from typing import Union
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models.fields.files import FieldFile
@@ -242,7 +243,6 @@ def mysets(request):
 
 @login_required
 def upload_csv(request):
-    from django.contrib import messages
     if request.method == 'POST':
         uploaded_file = request.FILES.get('input_file')
         if not uploaded_file:
@@ -267,4 +267,5 @@ def confirm_upload_csv(request):
     file_id = request.POST.get('file_id')
     file_obj = get_object_or_404(CSVFile, id=file_id)
     import_csv_file(file=file_obj.csv_file, dry_run=False, user_id=file_obj.author.id)
+    messages.success(request, 'Your projects were successfully uploaded')
     return redirect('projects')

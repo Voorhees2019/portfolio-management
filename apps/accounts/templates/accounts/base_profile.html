@@ -4,6 +4,7 @@
 {% block body_class %}template-profile{% endblock %}
 
 {% block content %}
+{% include 'alerts.html' %}
 <div class="row mt-4 mb-4">
     <div class="col-md-3">
         <div class="row mb-4">
@@ -13,7 +14,6 @@
         </div>
     </div>
     <div class="col-md-9">
-        {% include 'alerts.html' %}
         {% block profile_content %}{% endblock %}
     </div>
 </div>
