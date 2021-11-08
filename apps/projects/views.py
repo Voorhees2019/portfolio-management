@@ -1,10 +1,38 @@
 from typing import Union
 from django.conf import settings
-from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.db.models.fields.files import FieldFile
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.urls import reverse
-from .models import Project, Industry, Technology
+from import_export.results import Result
+from .models import Project, Industry, Technology, CSVFile
 from .utils import search_docs
+from tablib import import_set
+from .admin import ProjectResource, process_before_import_row
+
+
+class ProjectResourceFrontEnd(ProjectResource):
+    def before_import_row(self, row, row_number=None, **kwargs):
+        process_before_import_row(row, row_number, **kwargs)
+        user_id = kwargs.get("user_id")
+        row['author_id'] = user_id
+
+    def get_instance(self, instance_loader, row):
+        return Project.objects.filter(title=row.get('title'), author_id=row.get('author_id')).first()
+
+    def init_instance(self, row=None):
+        instance = super().init_instance(row)
+        instance.author_id = row.get('author_id')
+        return instance
+
+
+def import_csv_file(file: Union[InMemoryUploadedFile, FieldFile], dry_run: bool, user_id: int) -> Result:
+    project_resource = ProjectResourceFrontEnd()
+    data = file.read().decode('utf-8')
+    dataset = import_set(data, format='csv')
+    return project_resource.import_data(dataset, dry_run=dry_run, user_id=user_id)
 
 
 def set_exact_objects_order(elastic_objs_ids: list, model: Union[Project, Industry, Technology]) -> list:
@@ -50,6 +78,7 @@ def get_additional_filters(unfiltered_agg: dict, filtered_agg: dict, selected_id
     return unfiltered_list
 
 
+@login_required
 def projects(request):
     context = {}
     selected_industries_ids = list(map(int, request.GET.getlist('industries')))
@@ -182,7 +211,7 @@ def projects(request):
     if result['hits']['hits']:
         proj_ids = [int(doc.get('_id')) for doc in result['hits']['hits']]
         project_list = set_exact_objects_order(proj_ids, Project)
-    else:  # no matches found
+    elif Project.objects.count() != 0:  # pass `no_search_result` to the template if there is any project in database
         context.update(no_search_result=True)
     context.update(projects=project_list)
 
@@ -224,5 +253,36 @@ def projects(request):
     return render(request, 'projects/projects_list.html', context)
 
 
+@login_required
 def mysets(request):
     return HttpResponse('here will be mysets')
+
+
+@login_required
+def upload_csv(request):
+    from django.contrib import messages
+    if request.method == 'POST':
+        uploaded_file = request.FILES.get('input_file')
+        if not uploaded_file:
+            messages.error(request, 'Empty field. You must upload .csv file')
+            return render(request, 'projects/upload_csv.html', {})
+        elif not uploaded_file.name.endswith('.csv'):
+            messages.error(request, 'Incorrect file type. You must upload .csv file')
+            return render(request, 'projects/upload_csv.html', {})
+
+        csv_file = CSVFile(csv_file=uploaded_file)
+        csv_file.author = request.user
+        csv_file.save()
+
+        uploaded_file.seek(0)  # to be able to read file again from the start
+        result = import_csv_file(file=uploaded_file, dry_run=True, user_id=request.user.id)
+        return render(request, 'projects/upload_csv_confirm.html', {'result': result, 'file_id': csv_file.id})
+    return render(request, 'projects/upload_csv.html', {})
+
+
+@login_required
+def confirm_upload_csv(request):
+    file_id = request.POST.get('file_id')
+    file_obj = get_object_or_404(CSVFile, id=file_id)
+    import_csv_file(file=file_obj.csv_file, dry_run=False, user_id=file_obj.author.id)
+    return redirect('projects')

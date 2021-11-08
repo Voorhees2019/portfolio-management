@@ -3,8 +3,30 @@ from import_export import resources
 from import_export.fields import Field
 from import_export.admin import ImportExportActionModelAdmin
 from import_export.widgets import ManyToManyWidget
-from .models import Industry, Technology, Project, Company
+from .models import Industry, Technology, Project, Company, CSVFile
 from .forms import CustomImportForm, CustomConfirmImportForm
+
+
+def process_before_import_row(row, row_number=None, **kwargs):
+    technologies = row.get('technologies')
+    industries = row.get('industries')
+    # Extract technologies' and industries' names from row
+    technologies = [value.strip().capitalize() for value in technologies.split(',') if value]
+    industries = [value.strip().capitalize() for value in industries.split(',') if value]
+
+    # Change row immediately(capitalize each industry and technology) in order if pass row to the next
+    # method, to be able to update project's strange written industries and technologies like 'PYTHON', 'jS'
+    row['technologies'] = ", ".join(technologies)
+    row['industries'] = ", ".join(industries)
+
+    # Create technologies and industries if not exist yet
+    for item in technologies:
+        Technology.objects.get_or_create(title=item)
+    for item in industries:
+        Industry.objects.get_or_create(title=item)
+
+    # Transform notes to boolean. If there is nothing in notes, `url_is_active` set to True
+    row['notes'] = not row['notes']
 
 
 @admin.register(Industry)
@@ -46,25 +68,7 @@ class ProjectResource(resources.ModelResource):
         return 'Doesn\'t work'
 
     def before_import_row(self, row, row_number=None, **kwargs):
-        technologies = row.get('technologies')
-        industries = row.get('industries')
-        # Extract technologies' and industries' names from row
-        technologies = [value.strip().capitalize() for value in technologies.split(',') if value]
-        industries = [value.strip().capitalize() for value in industries.split(',') if value]
-
-        # Change row immediately(capitalize each industry and technology) in order if pass row to the next
-        # method, to be able to update project's strange written industries and technologies like 'PYTHON', 'jS'
-        row['technologies'] = ", ".join(technologies)
-        row['industries'] = ", ".join(industries)
-
-        # Create technologies and industries if not exist yet
-        for item in technologies:
-            Technology.objects.get_or_create(title=item)
-        for item in industries:
-            Industry.objects.get_or_create(title=item)
-
-        # Transform notes to boolean. If there is nothing in notes, `url_is_active` set to True
-        row['notes'] = not row['notes']
+        process_before_import_row(row, row_number, **kwargs)
 
     def get_instance(self, instance_loader, row):
         return Project.objects.filter(title=row.get('title'), author_id=self.author).first()
@@ -138,4 +142,12 @@ class CompanyAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "founder", "website", "email", "slogan")
     list_display_links = ("id", "name")
     search_fields = ("name", "description", "founder", "email", "slogan")
+    list_per_page = 25
+
+
+@admin.register(CSVFile)
+class CSVFileAdmin(admin.ModelAdmin):
+    list_display = ("id", "author", "created_at")
+    list_display_links = ("id",)
+    search_fields = ("id", "author")
     list_per_page = 25

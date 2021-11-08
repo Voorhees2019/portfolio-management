@@ -84,3 +84,15 @@ class Company(models.Model):
 
     class Meta:
         verbose_name_plural = 'Companies'
+
+
+class CSVFile(models.Model):
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(_('Date created'), auto_now_add=True)
+    csv_file = models.FileField(upload_to="csv_files/")
+
+    def __str__(self):
+        return f'CSV file #{self.id}'
+
+    class Meta:
+        verbose_name_plural = 'CSV Files'
