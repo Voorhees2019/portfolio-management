@@ -1,5 +1,5 @@
-from django.db.models.signals import post_delete, m2m_changed
-from .models import Project
+from django.db.models.signals import post_delete, pre_delete, m2m_changed
+from .models import Project, CSVFile
 from django.dispatch import receiver
 
 
@@ -16,3 +16,10 @@ def update_document(sender, instance, action, **kwargs):
         refresh_index = getattr(instance, '_refresh_index', True)
         dry_index_update = getattr(instance, '_dry_index_update', False)
         instance.save(refresh_index=refresh_index, dry_index_update=dry_index_update)
+
+
+@receiver(pre_delete, sender=CSVFile)
+def delete_csv_file(sender, instance, **kwargs):
+    """Must delete .csv file from storage here but not in model's `delete()` method because when deleting objects
+    from admin panel, django uses `bulk_delete()` on a queryset and doesn't call `delete()` method for each instance"""
+    instance.csv_file.delete()
