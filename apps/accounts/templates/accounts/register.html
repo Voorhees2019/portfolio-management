@@ -10,7 +10,7 @@
 <form method="post">
     <input type="hidden" name="next" value="{{ next }}" />
     {% csrf_token %}
-    {% include "forms/form_fields.html" with hide_required_badges=True %}
+    {% include "forms/form_fields.html" %}
     <div class="form-group">
       <button class="btn btn-lg btn-primary btn-block" type="submit">{% trans "Register" %}</button>
     </div>

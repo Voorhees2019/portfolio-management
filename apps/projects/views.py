@@ -12,6 +12,7 @@ from .models import Project, Industry, Technology, CSVFile
 from .utils import search_docs
 from tablib import import_set
 from .admin import ProjectResource, process_before_import_row
+from .forms import ProjectForm
 
 
 class ProjectResourceFrontEnd(ProjectResource):
@@ -269,3 +270,40 @@ def confirm_upload_csv(request):
     import_csv_file(file=file_obj.csv_file, dry_run=False, user_id=file_obj.author.id)
     messages.success(request, 'Your projects were successfully uploaded')
     return redirect('projects')
+
+
+@login_required
+def project_edit(request, project_id):
+    project = get_object_or_404(Project, id=project_id, author=request.user)
+    if request.method == 'POST':
+        form = ProjectForm(request.POST, instance=project)
+        if form.is_valid():
+            form.save()  # no need to call `form.save_m2m()`. `save_m2m()` is only required if use `save(commit=false)`
+            return redirect('projects')
+        else:  # render with form.errors
+            return render(request, 'projects/project_form.html', {'form': form})
+    form = ProjectForm(instance=project)
+    return render(request, 'projects/project_form.html', {'project': project, 'form': form})
+
+
+@login_required
+def project_delete(request, project_id):
+    project = get_object_or_404(Project, id=project_id, author=request.user)
+    project.delete()
+    return redirect('projects')
+
+
+@login_required
+def project_create(request):
+    if request.method == 'POST':
+        form = ProjectForm(request.POST)
+        if form.is_valid():
+            new_project = form.save(commit=False)
+            new_project.author = request.user
+            new_project.save()
+            form.save_m2m()
+            return redirect('projects')
+        else:  # render with form.errors
+            return render(request, 'projects/project_form.html', {'form': form})
+    form = ProjectForm()
+    return render(request, 'projects/project_form.html', {'form': form})

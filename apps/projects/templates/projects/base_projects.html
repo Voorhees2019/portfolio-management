@@ -20,9 +20,9 @@
                             <a href="{% url 'projects_public' %}"
                                class="btn btn-secondary {% if current_tab == "public" %}active{% endif %}">{% trans "Public" %}</a>
                             <a href="{% url 'mysets' %}"
-                               class="btn btn-secondary {% if current_tab == "myset" %}active{% endif %}">{% trans "Myset" %}</a>
+                               class="btn btn-secondary {% if current_tab == "mysets" %}active{% endif %}">{% trans "My Sets" %}</a>
                         </div>
-                        <a href="" class="btn btn-outline-primary ml-2">{% trans "Add new project" %}</a>
+                        <a href="{% url 'project_create' %}" class="btn btn-outline-primary ml-2">{% trans "Add new project" %}</a>
                     </div>
                     <div>
                         <a href="{% url 'upload_csv' %}" class="btn btn-outline-primary">{% trans "Upload .csv" %}</a>

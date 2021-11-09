@@ -13,12 +13,15 @@ defusedxml==0.7.1
 diff-match-patch==20200713
 dj-database-url==0.5.0
 Django==3.2.8
+django-appconf==1.0.5
 django-cors-headers==3.10.0
 django-debug-toolbar==2.2.1
 django-debug-toolbar-template-profiler==2.0.0
 django-extensions==2.2.8
 django-import-export==2.6.1
+django-redis==5.0.0
 django-redis-cache==2.1.0
+django-select2==7.9.0
 django-utils-six==2.0
 easy-thumbnails==2.7
 elasticsearch==7.15.1
