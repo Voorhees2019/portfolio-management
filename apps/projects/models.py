@@ -43,7 +43,7 @@ class Project(models.Model):
             'title': self.title,
             'description': self.description,
             'author': self.author.id,
-            'is_private': 'true' if self.is_private else 'false',
+            'is_private': self.is_private,
             'industries': list(self.industries.values_list("id", flat=True)),
             'technologies': list(self.technologies.values_list("id", flat=True)),
         }
@@ -91,7 +91,7 @@ class Company(models.Model):
 class CSVFile(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(_('Date created'), auto_now_add=True)
-    csv_file = models.FileField(upload_to="csv_files/")
+    csv_file = models.FileField(upload_to="csv_files")
 
     def __str__(self):
         return f'CSV file #{self.id}'

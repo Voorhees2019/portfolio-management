@@ -11,8 +11,8 @@ def process_before_import_row(row, row_number=None, **kwargs):
     technologies = row.get('technologies')
     industries = row.get('industries')
     # Extract technologies' and industries' names from row
-    technologies = [value.strip().capitalize() for value in technologies.split(',') if value]
-    industries = [value.strip().capitalize() for value in industries.split(',') if value]
+    technologies = [x for value in technologies.split(',') if (x := value.strip().capitalize())]
+    industries = [x for value in industries.split(',') if (x := value.strip().capitalize())]
 
     # Change row immediately(capitalize each industry and technology) in order if pass row to the next
     # method, to be able to update project's strange written industries and technologies like 'PYTHON', 'jS'
