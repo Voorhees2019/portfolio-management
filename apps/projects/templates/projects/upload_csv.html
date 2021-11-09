@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Projects Upload .csv{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .inputDnD .form-control-file {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 12em;
+            outline: none;
+            visibility: hidden;
+            cursor: pointer;
+            background-color: #c61c23;
+            box-shadow: 0 0 5px solid currentColor;
+        }
+
+        .inputDnD .form-control-file:before {
+            content: attr(data-title);
+            position: absolute;
+            top: 0.5em;
+            left: 0;
+            width: 100%;
+            min-height: 10em;
+            line-height: 2em;
+            padding-top: 4em;
+            opacity: 1;
+            visibility: visible;
+            text-align: center;
+            border: 0.25em dashed currentColor;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            overflow: hidden;
+        }
+
+        .inputDnD .form-control-file:hover:before {
+            border-style: solid;
+            box-shadow: inset 0 0 0 0.25em currentColor;
+        }
+
+        body {
+            background-color: #f7f7f9;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    {% include 'alerts.html' %}
+    <form action="" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h1 class="text-center">{% trans "Upload Portfolio" %}</h1>
+        <div class="row mt-3">
+            <div class="col-md-8 offset-md-2">
+                <div class="form-group inputDnD">
+                    <label class="sr-only" for="inputFile">File Upload</label>
+                    <input type="file" class="form-control-file text-primary font-weight-bold" id="inputFile"
+                           name="input_file" accept=".csv" onchange="previewFile(this)"
+                           data-title="Click here or drag and drop .csv file">
+                </div>
+            </div>
+        </div>
+        <div class="form-group col-md-8 offset-md-2 p-0">
+          <button class="btn btn-lg btn-primary btn-block" type="submit">{% trans "Upload" %}</button>
+        </div>
+    </form>
+{% endblock %}
+
+{% block extra_js %}
+    <script type="text/javascript">
+        let fileType = '';
+        function previewFile(input) {
+            if (input.files && input.files[0]) {
+                let reader = new FileReader();
+                reader.onload = (e) => {
+                    let csvName = input.files[0].name;
+                    input.setAttribute("data-title", csvName);
+                    fileType = input.files[0].type;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+{% endblock %}

@@ -225,3 +225,9 @@ SOCIAL_AUTH_PIPELINE = (
 IMPORT_EXPORT_USE_TRANSACTIONS = True
 
 PAGE_SIZE = 25
+
+# Messages
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger'
+}

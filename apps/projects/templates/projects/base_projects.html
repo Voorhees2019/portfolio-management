@@ -2,6 +2,7 @@
 {% load i18n %}
 
 {% block content %}
+    {% include 'alerts.html' %}
     <div class="row mt-4 mb-4">
         <!-- FILTERS -->
         <div class="col-md-4">
@@ -10,7 +11,6 @@
             </div>
         </div>
         <div class="col-md-8">
-            {% include 'alerts.html' %}
             <div class="row">
                 <div class="d-flex justify-content-between w-100">
                     <div>
@@ -25,7 +25,7 @@
                         <a href="" class="btn btn-outline-primary ml-2">{% trans "Add new project" %}</a>
                     </div>
                     <div>
-                        <a href="" class="btn btn-outline-primary">{% trans "Upload .csv" %}</a>
+                        <a href="{% url 'upload_csv' %}" class="btn btn-outline-primary">{% trans "Upload .csv" %}</a>
                         <a href="" class="btn btn-outline-primary">{% trans "Add new set" %}</a>
                     </div>
                 </div>

@@ -12,6 +12,8 @@ def create_index(index_name='projects'):
             "properties": {
                 "title": {"type": "text"},
                 "description": {"type": "text"},
+                "author": {"type": "keyword"},
+                "is_private": {"type": "boolean"},
                 "industries": {"type": "keyword"},
                 "technologies": {"type": "keyword"}
             }
