@@ -53,12 +53,12 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', default='NO') == 'YES'
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', default='NO') == 'YES'
 
 PARSED_REDIS_URL = urlparse(config('REDIS_URL'))
-CACHES = {
+CACHES.update({
     'default': {
         'BACKEND': 'redis_cache.RedisCache',
         'LOCATION': config('REDIS_URL'),
     }
-}
+})
 
 # SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 # SESSION_FILE_PATH = config('SESSION_FILE_PATH', default=os.path.join(BASE_DIR, 'sessions'))

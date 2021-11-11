@@ -36,7 +36,7 @@ class Project(models.Model):
     url_is_active = models.BooleanField(_('Website is active'), default=False)
     created_at = models.DateTimeField(_('Date created'), auto_now_add=True)
     updated_at = models.DateTimeField(_('Date updated'), auto_now=True)
-    is_private = models.BooleanField(_('Private'), default=True)
+    is_private = models.BooleanField(_('Project is private'), default=True)
 
     def get_elasticsearch_document(self):
         doc = {

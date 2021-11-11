@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     # installed
     'social_django',
     'import_export',
+    'django_select2',
 
     # custom apps
     'apps.core',
@@ -231,3 +232,15 @@ from django.contrib.messages import constants as messages
 MESSAGE_TAGS = {
     messages.ERROR: 'danger'
 }
+
+CACHES = {
+    "select2": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/2",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+}
+# Tell select2 which cache configuration to use:
+SELECT2_CACHE_BACKEND = "select2"
