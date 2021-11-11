@@ -12,7 +12,7 @@ urlpatterns = [
     path('', include('apps.accounts.urls')),
     path('', include('apps.projects.urls')),
     path('social-auth/', include('social_django.urls', namespace='social')),
-    # path('select2/', include('django_select2.urls')),
+    path("select2/", include("django_select2.urls")),
     path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
 ]
 
