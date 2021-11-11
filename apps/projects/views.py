@@ -280,9 +280,8 @@ def project_edit(request, project_id):
         if form.is_valid():
             form.save()  # no need to call `form.save_m2m()`. `save_m2m()` is only required if use `save(commit=false)`
             return redirect('projects')
-        else:  # render with form.errors
-            return render(request, 'projects/project_form.html', {'form': form})
-    form = ProjectForm(instance=project)
+    else:
+        form = ProjectForm(instance=project)
     return render(request, 'projects/project_form.html', {'project': project, 'form': form})
 
 
@@ -303,7 +302,6 @@ def project_create(request):
             new_project.save()
             form.save_m2m()
             return redirect('projects')
-        else:  # render with form.errors
-            return render(request, 'projects/project_form.html', {'form': form})
-    form = ProjectForm()
+    else:
+        form = ProjectForm()
     return render(request, 'projects/project_form.html', {'form': form})
