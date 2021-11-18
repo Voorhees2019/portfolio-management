@@ -3,7 +3,7 @@ from import_export import resources
 from import_export.fields import Field
 from import_export.admin import ImportExportActionModelAdmin
 from import_export.widgets import ManyToManyWidget
-from .models import Industry, Technology, Project, Company, CSVFile
+from .models import Industry, Technology, Project, Company, CSVFile, Set
 from .forms import CustomImportForm, CustomConfirmImportForm
 
 
@@ -106,9 +106,9 @@ class ProjectResource(resources.ModelResource):
 class ProjectAdmin(ImportExportActionModelAdmin):
     resource_class = ProjectResource
 
-    list_display = ("id", "title", "author", "url", "url_is_active", "is_private", "updated_at")
+    list_display = ("id", "title", "original", "author", "url", "url_is_active", "is_private", "updated_at")
     list_display_links = ("id", "title")
-    list_filter = ("author", "url_is_active", "created_at")
+    list_filter = ("author", "url_is_active", "original", "created_at")
     raw_id_fields = ("industries", "technologies")
     search_fields = ("title", "description")
     list_per_page = 25
@@ -150,4 +150,13 @@ class CSVFileAdmin(admin.ModelAdmin):
     list_display = ("id", "author", "created_at")
     list_display_links = ("id",)
     search_fields = ("id", "author")
+    list_per_page = 25
+
+
+@admin.register(Set)
+class SetAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "author", "created_at")
+    list_display_links = ("id", "name")
+    search_fields = ("id", "name", "author")
+    raw_id_fields = ("projects",)
     list_per_page = 25

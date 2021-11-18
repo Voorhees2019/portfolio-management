@@ -1,6 +1,20 @@
 {% extends "base.html" %}
 {% load i18n %}
 
+{% block extra_css %}
+    <style>
+        .inactive-background {
+            background-color: #E3E1E3;
+        }
+        .searchbar-background {
+            background-color: #FBEEDB;
+        }
+        .scroll-mt {
+            scroll-margin-top: 3em;
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
     {% include 'alerts.html' %}
     <div class="row mt-4 mb-4">
@@ -11,34 +25,45 @@
             </div>
         </div>
         <div class="col-md-8">
-            <div class="row">
+            <div id="actionsRow" class="row bg-white">
                 <div class="d-flex justify-content-between w-100">
                     <div>
-                        <div class="btn-group" role="group" aria-label="Basic example">
-                            <a href="{% url 'projects' %}"
-                               class="btn btn-secondary {% if current_tab == "private" %}active{% endif %}">{% trans "Private" %}</a>
-                            <a href="{% url 'projects_public' %}"
-                               class="btn btn-secondary {% if current_tab == "public" %}active{% endif %}">{% trans "Public" %}</a>
-                            <a href="{% url 'mysets' %}"
-                               class="btn btn-secondary {% if current_tab == "mysets" %}active{% endif %}">{% trans "My Sets" %}</a>
-                        </div>
-                        <a href="{% url 'project_create' %}" class="btn btn-outline-primary ml-2">{% trans "Add new project" %}</a>
+                        {% include "projects/nav_tabs.html" with current_tab=current_tab %}
+                        <a href="{% url 'project_create' %}" id="addNewProject"
+                           class="btn btn-outline-primary ml-2 mb-1 text-nowrap project-management-tool">{% trans "Add new project" %}</a>
                     </div>
-                    <div>
-                        <a href="{% url 'upload_csv' %}" class="btn btn-outline-primary">{% trans "Upload .csv" %}</a>
-                        <a href="" class="btn btn-outline-primary">{% trans "Add new set" %}</a>
+                    <div class="project-management-tool">
+                        <a href="{% url 'upload_csv' %}"
+                           class="btn btn-outline-primary text-nowrap mb-1">{% trans "Upload .csv" %}</a>
+                        <button id="addNewSet" type="button"
+                                class="btn btn-outline-primary text-nowrap mb-1">{% trans "Add new set" %}</button>
+                        {% if projects %}
+                            <a href="" class="btn btn-outline-danger text-nowrap deleteAllProjects mb-1"
+                               data-delete-url="{% url 'projects_delete' %}">{% trans 'Delete All' %}</a>
+                        {% endif %}
                     </div>
+
+                    <div class="d-none set-management-tool">
+                        <button id="saveSet" type="button" class="btn btn-primary" data-toggle="modal"
+                                data-target="#setNameModal">{% trans 'Save Set' %}</button>
+                        <button id="cancelAddingNewSet" type="button"
+                                class="btn btn-danger">{% trans 'Cancel' %}</button>
+                    </div>
+                </div>
+                <div class="font-weight-bold d-none set-management-tool">
+                    <h6 id="projectsAddedCount" class="font-weight-bold"></h6>
+{#                    <span id="projectsAddedCount"></span> {% trans 'projects added' %}#}
                 </div>
             </div>
 
             <!-- SEARCH -->
             <div class="row mt-3">
-                <div class="col-md-12 p-4" style="background-color: #FBEEDB;">
+                <div id="searchBlock" class="col-md-12 p-4 searchbar-background">
                     <div class="input-group">
                         <input id="searchProject" type="search" class="form-control"
                                placeholder="Search by project name or description" name="search"
                                {% if search_value %}value="{{ search_value }}"{% endif %}
-                               style="background-color: #FBEEDB; border-color: #FFFFFF;border-width: 2px;">
+                               style="background-color: inherit; border-color: #FFFFFF;border-width: 2px;">
                         <div class="input-group-append">
                             <button id="searchProjectSubmit" class="btn" type="submit"><i class="fa fa-search"></i>
                             </button>
@@ -53,12 +78,40 @@
                     {% block projects_content %}{% endblock %}
                 </div>
             </div>
+
+            <!-- SET NAME MODAL -->
+            <div class="modal fade" id="setNameModal" role="dialog">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            <form id="createSetForm" action="" method="POST">
+                                {% csrf_token %}
+                                <h3 class="modal-title text-center font-weight-bold" id="setNameModalLabel">Enter your
+                                    set name</h3>
+                                <div id="emptyFormBlock">
+                                    <p>Loading...</p>
+                                </div>
+                                <div class="d-flex justify-content-center">
+                                    <button type="submit" class="btn btn-primary mr-2">Create</button>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}
 
 {% block extra_js %}
     <script type="text/javascript">
+        let cnameProjectsIds = 'project_ids';
+        let cnameSetCreateMode = 'create_set_mode';
+        let cnameSetUpdateMode = 'update_set';
+        let cnameSetId = 'set_id';
+        setMode();
+
         // reset industries filter
         document.getElementById('resetIndustries').onclick = function () {
             let checkboxes = document.getElementsByName('industries');
@@ -131,5 +184,227 @@
             form.submit();
         }
 
+        {% include "projects/deleteObjectHandler.js" %}
+        // confirm project deletion
+        deleteObjectHandler('deleteProject', 'Are you sure you want to delete this project?')
+        // confirm All user's projects deletion
+        deleteObjectHandler('deleteAllProjects', 'Are you sure you want to delete ALL your projects?')
+
+        function toggleSetToolVisibility() {
+            // toggle filter and search-bar background-color
+            $('#filtersBlock').toggleClass('inactive-background');
+            $('#searchBlock').toggleClass('searchbar-background inactive-background');
+            // toggle filter and search-bar elements `disabled` attribute
+            $('#filtersBlock *').prop('disabled', function (i, v) {
+                return !v;
+            });
+            $('#searchBlock *').prop('disabled', function (i, v) {
+                return !v;
+            });
+
+            // toggle top site actions row
+            let actionsRow = $('#actionsRow');
+            if (actionsRow.hasClass('sticky-top')) {
+                actionsRow.removeAttr('style');
+            } else {
+                actionsRow.attr('style', 'top: 55px!important;');
+                {#actionsRow.css('top', '55px!important'); // !important not working here#}
+            }
+            actionsRow.toggleClass('sticky-top py-3');
+
+            // toggle visibility of projects management tools
+            $('.project-management-tool').each(function () {
+                $(this).toggleClass('d-none');
+            });
+            // toggle visibility of sets management tools
+            $('.set-management-tool').each(function () {
+                $(this).toggleClass('d-none');
+            });
+        }
+
+        function getCookie(varName) {
+            let name = varName + "=";
+            let decodedCookie = decodeURIComponent(document.cookie);
+            let ca = decodedCookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(name) == 0) {
+                    return c.substring(name.length, c.length);
+                }
+            }
+            return "";
+        }
+
+        function setCookie(name, value, days) {
+            let expires = "";
+            if (days) {
+                let date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "") + expires + "; path=/";
+        }
+
+        function deleteCookie(name) {
+            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+        }
+
+        function clearCookieMySet() {
+            deleteCookie(cnameSetCreateMode);
+            deleteCookie(cnameProjectsIds);
+            deleteCookie(cnameSetUpdateMode);
+            deleteCookie(cnameSetId);
+        }
+
+        function getCookieProjectIdsList(cname) {
+            let cookieProjectIds = getCookie(cname);
+            if (cookieProjectIds !== '') {
+                return cookieProjectIds.split('|').map(function (item) {
+                    return parseInt(item, 10);
+                });
+            }
+            return null;
+        }
+
+        function cookieAddProjectId(cname, project_id) {
+            let projectIdsList = getCookieProjectIdsList(cname);
+            if (projectIdsList) {
+                if (!projectIdsList.includes(project_id)) {
+                    projectIdsList.push(project_id);
+                    setCookie(cname, projectIdsList.join('|'));
+                }
+            } else {
+                setCookie(cname, project_id);
+            }
+        }
+
+        function cookieRemoveProjectId(cname, project_id) {
+            let projectIdsList = getCookieProjectIdsList(cname);
+            if (projectIdsList) {
+                const index = projectIdsList.indexOf(project_id);
+                if (index > -1) {
+                    projectIdsList.splice(index, 1)
+                    setCookie(cname, projectIdsList.join('|'));
+                }
+            }
+        }
+
+        function refreshSetModeElements() {
+            let projectIdsList = getCookieProjectIdsList(cnameProjectsIds);
+            if (projectIdsList) {
+                $('#projectsAddedCount').text(`${projectIdsList.length} {% trans 'projects added' %}`);
+                $('.add-project-to-set').each(function () {
+                    let curAddButton = $(this);
+                    if (projectIdsList.includes(curAddButton.data('project-id'))) {
+                        curAddButton.hide();
+                        curAddButton.parent().find('.remove-project-from-set').show();
+                    } else {
+                        curAddButton.show();
+                        curAddButton.parent().find('.remove-project-from-set').hide();
+                    }
+                });
+            } else {
+                $('#projectsAddedCount').text('0 {% trans 'projects added' %}');
+                $('.add-project-to-set').show();
+                $('.remove-project-from-set').hide();
+            }
+        }
+
+        $('.add-project-to-set').on('click', function () {
+            const project_id = $(this).data('project-id');
+            cookieAddProjectId(cnameProjectsIds, project_id);
+            refreshSetModeElements();
+        });
+
+        $('.remove-project-from-set').on('click', function () {
+            const project_id = $(this).data('project-id');
+            cookieRemoveProjectId(cnameProjectsIds, project_id);
+            refreshSetModeElements();
+        });
+
+        // check cookie and set mode (projects management or new set creation)
+        function setMode() {
+            let createSetMode = getCookie(cnameSetCreateMode);
+            let update_set = getCookie('update_set');
+            if (createSetMode === 'yes' || update_set === 'yes') {
+                enableCreateSetMode();
+            }
+        }
+
+        function enableCreateSetMode() {
+            toggleSetToolVisibility();
+            refreshSetModeElements();
+        }
+
+        function disableCreateSetMode() {
+            toggleSetToolVisibility();
+            clearCookieMySet();
+        }
+
+        $("#addNewSet").click(function () {
+            setCookie(cnameSetCreateMode, 'yes');
+            enableCreateSetMode();
+        });
+
+        $("#cancelAddingNewSet").click(function () {
+            disableCreateSetMode();
+        });
+
+        $("#saveSet").click(function (event) {
+            let update_set = getCookie(cnameSetUpdateMode);
+            let set_id = getCookie(cnameSetId);
+            let project_ids = getCookie(cnameProjectsIds);
+            if (project_ids === "") {
+                console.log('if');
+                event.stopPropagation();
+                alert('You have to add at least one project to set!');
+                return false;
+            }
+            // update existing set
+            if (update_set === 'yes') {
+                // prevent appearing modal window(for creating new set) because we're updating the existing set
+                event.stopPropagation();
+                // send request to add projects to existing set
+                let url = "{% url 'myset_add_project' set_id=999999 %}".replace(/999999/, set_id.toString())
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    data: {
+                        'csrfmiddlewaretoken': '{{csrf_token}}'
+                    },
+                    success: function () {
+                        clearCookieMySet();
+                        window.location.replace("{% url 'mysets' %}");
+                    }
+                });
+            } else {  // create a new set
+                $("#emptyFormBlock").load("{% url 'myset_create' %}");
+            }
+        });
+
+        // createSet form submission
+        $("#createSetForm").submit(function (e) {
+            e.preventDefault();
+            let form = $(this);
+            let url = '{% url 'myset_create' %}';
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: form.serialize(),
+                success: function (response) {
+                    if (response === 'created') {
+                        clearCookieMySet();
+                        toggleSetToolVisibility();
+                        window.location.replace("{% url 'mysets' %}");
+                    } else {
+                        $('#emptyFormBlock').html(response);
+                        $('.errorlist').addClass('alert alert-danger').css('list-style-type', 'none');
+                    }
+                }
+            });
+        });
     </script>
 {% endblock %}

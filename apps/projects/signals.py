@@ -1,5 +1,5 @@
 from django.db.models.signals import post_delete, pre_delete, m2m_changed
-from .models import Project, CSVFile
+from .models import Project, CSVFile, Set
 from django.dispatch import receiver
 
 
@@ -23,3 +23,10 @@ def delete_csv_file(sender, instance, **kwargs):
     """Must delete .csv file from storage here but not in model's `delete()` method because when deleting objects
     from admin panel, django uses `bulk_delete()` on a queryset and doesn't call `delete()` method for each instance"""
     instance.csv_file.delete()
+
+
+@receiver(pre_delete, sender=Set)
+def delete_set(sender, instance, **kwargs):
+    for project in instance.projects.all():
+        if not project.original:
+            project.delete()

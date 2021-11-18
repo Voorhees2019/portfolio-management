@@ -1,0 +1,92 @@
+{% load i18n static core_tags %}
+{% load i18n static project_tags %}
+
+{% url 'projects' as projects_url %}
+
+<div class="projectBlock">
+    <div class="row mt-2 mb-2">
+        <div class="col-md-3">
+            <span class="text-muted">Name:</span>
+        </div>
+        <div class="col-md-9">
+            <div class="d-flex flex-row">
+                <div class="mr-auto">
+                    {% spaceless %}
+                        <h4 id="project{{ project.id }}" class="font-weight-bold scroll-mt">{{ project.title }}{% if condition == 'mysets' %}<sup
+                                class="font-weight-normal">{% if project.original %}Original{% else %}Edited{% endif %}</sup>{% endif %}</h4>
+                    {% endspaceless %}
+                </div>
+                {% if condition == 'projects' %}
+                    <div class="project-management-tool mr-1">
+                        <a href="{% url 'project_edit' project.id %}"
+                           class="btn btn-success btn-sm">{% trans 'Edit' %}</a>
+                    </div>
+                    <div class="project-management-tool">
+                        <a href="" class="btn btn-danger btn-sm deleteProject"
+                           data-delete-url="{% url 'project_delete' project.id %}">{% trans 'Delete' %}</a>
+                    </div>
+                    <div class="d-none set-management-tool">
+                        <button class="btn btn-success add-project-to-set text-nowrap" type="button"
+                                data-project-id="{{ project.id }}">
+                            {% trans 'Add to Set' %}
+                        </button>
+                        <button class="btn btn-danger remove-project-from-set text-nowrap" type="button"
+                                style="display: none;" data-project-id="{{ project.id }}">{% trans 'Remove from Set' %}
+                        </button>
+                    </div>
+                {% elif condition == 'mysets' %}
+                    <div class="project-management-tool mr-1">
+                        <a href="{% url 'myset_project_edit' set.id project.id %}"
+                           class="btn btn-success btn-sm text-nowrap">{% trans 'Edit project' %}</a>
+                    </div>
+                    <div class="project-management-tool">
+                        <a href="" class="btn btn-danger btn-sm text-nowrap removeProjectFromSet"
+                           data-delete-url="{% url 'myset_project_delete' set.id project.id %}">{% trans 'Remove from set' %}</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="row mb-1">
+        <div class="col-md-3">
+            <span class="text-muted">Industries:</span>
+        </div>
+        <div class="col-md-9">
+            {% for industry in project.industries.all %}
+                <a href="{% set_query_parameter url=projects_url param_name='industries' param_value=industry.id %}"
+                   class="text-decoration-none" target="_blank">{{ industry.title }}</a>{% if not forloop.last %},
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    <div class="row mb-1">
+        <div class="col-md-3">
+            <span class="text-muted">Description:</span>
+        </div>
+        <div class="col-md-9" style="text-align: justify;">
+            {{ project.description }}
+        </div>
+    </div>
+    <div class="row mb-1">
+        <div class="col-md-3">
+            <span class="text-muted">Technologies:</span>
+        </div>
+        <div class="col-md-9">
+            {% for technology in project.technologies.all %}
+                <a href="{% set_query_parameter url=projects_url param_name='technologies' param_value=technology.id %}"
+                   class="text-decoration-none">{{ technology.title }}</a>{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    <div class="row mb-2">
+        <div class="col-md-3">
+            <span class="text-muted">URL:</span>
+        </div>
+        <div class="col-md-9">
+            {% if not project.url_is_active %}
+                <i class="fa fa-times"></i>
+            {% endif %}
+            <a href="{{ project.url }}">{{ project.url }}</a>
+        </div>
+    </div>
+</div>

@@ -2,7 +2,7 @@ from django import forms
 from django_select2.forms import Select2MultipleWidget
 from apps.accounts.models import User
 from import_export.forms import ImportForm, ConfirmImportForm
-from .models import Project
+from .models import Project, Set
 
 
 class CustomImportForm(ImportForm):
@@ -23,3 +23,26 @@ class ProjectForm(forms.ModelForm):
             'industries': Select2MultipleWidget,
             'technologies': Select2MultipleWidget,
         }
+
+
+class SetForm(forms.ModelForm):
+    name = forms.CharField(label="", widget=forms.TextInput(attrs={'class': "form-control my-3"}))
+
+    def __init__(self, *args, **kwargs):
+        self.author = kwargs.pop('author', None)
+        super().__init__(*args, **kwargs)
+
+    def clean_name(self):
+        from django.core.exceptions import ValidationError
+        cleaned_name = self.cleaned_data.get('name')
+        try:
+            Set.objects.get(name=cleaned_name, author=self.author)
+        except Set.DoesNotExist:
+            pass
+        else:
+            raise ValidationError('Set with such name already exists')
+        return cleaned_name
+
+    class Meta:
+        model = Set
+        fields = ['name']

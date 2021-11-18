@@ -5,14 +5,14 @@ from django.contrib.auth.decorators import login_required
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models.fields.files import FieldFile
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from import_export.results import Result
-from .models import Project, Industry, Technology, CSVFile
+from .models import Project, Industry, Technology, CSVFile, Set
 from .utils import search_docs
 from tablib import import_set
 from .admin import ProjectResource, process_before_import_row
-from .forms import ProjectForm
+from .forms import ProjectForm, SetForm
 
 
 class ProjectResourceFrontEnd(ProjectResource):
@@ -80,21 +80,60 @@ def get_additional_filters(unfiltered_agg: dict, filtered_agg: dict, selected_id
     return unfiltered_list
 
 
+def get_projects_ids_from_cookies(cookies: dict) -> list:
+    project_ids = cookies.get('project_ids')
+    return [int(x) for x in project_ids.split('|')] if project_ids else []
+
+
+def add_cookies(response: Union[HttpResponse, HttpResponseRedirect], cookies: dict):
+    for cname, val in cookies.items():
+        response.set_cookie(cname, val)
+
+
+def delete_cookies(response: Union[HttpResponse, HttpResponseRedirect], cookies: list):
+    for cname in cookies:
+        response.delete_cookie(cname)
+
+
+def clone_project(project: Project):
+    old_industries = project.industries.all()
+    old_technologies = project.technologies.all()
+    project.pk = None
+    # do not put the copied project into elastic index
+    project.save(refresh_index=False, dry_index_update=True)
+    project.original = False
+    project.save(refresh_index=False, dry_index_update=True)
+    project.industries.set(old_industries)
+    project.technologies.set(old_technologies)
+    return project
+
+
 @login_required
 def projects(request):
     context = {}
     selected_industries_ids = list(map(int, request.GET.getlist('industries')))
     selected_technologies_ids = list(map(int, request.GET.getlist('technologies')))
     project_search_text = request.GET.get("search")
+    public_projects_filter = False
+
+    if request.path == reverse('projects'):
+        context.update(current_tab='private')
+    elif request.path == reverse('projects_public'):
+        context.update(current_tab='public')
+        public_projects_filter = {"term": {"is_private": False}}
 
     # ElasticSearch query
     author_filter = {"terms": {"author": [request.user.id]}}
+    public_or_author_filter = [public_projects_filter or author_filter]
     query = {
         "from": (int(request.GET.get('page', 1)) - 1) * settings.PAGE_SIZE,
         "size": settings.PAGE_SIZE,
+        "sort": [
+            {"project_id": {"order": "desc"}}
+        ],
         "query": {
             "bool": {
-                "must": [author_filter]
+                "must": public_or_author_filter
             }
         },
         "aggs": {
@@ -121,7 +160,7 @@ def projects(request):
                         },
                         "filter": {
                             "bool": {
-                                "must": [author_filter]
+                                "must": public_or_author_filter
                             }
                         }
                     }
@@ -138,7 +177,7 @@ def projects(request):
                         },
                         "filter": {
                             "bool": {
-                                "must": [author_filter]
+                                "must": public_or_author_filter
                             }
                         }
                     }
@@ -172,8 +211,8 @@ def projects(request):
         search_text_query = {
             "bool": {
                 "should": [
-                    {"match": {"title": project_search_text}},
-                    {"match": {"description": project_search_text}}
+                    {"match_phrase_prefix": {"title": project_search_text}},
+                    {"match_phrase_prefix": {"description": project_search_text}}
                 ]
             }
         }
@@ -228,18 +267,7 @@ def projects(request):
 
     context.update(industries=industries)
     context.update(technologies=technologies)
-
-    if request.path == reverse('projects'):
-        context.update(current_tab='private')
-    elif request.path == reverse('projects_public'):
-        context.update(current_tab='public')
-
     return render(request, 'projects/projects_list.html', context)
-
-
-@login_required
-def mysets(request):
-    return HttpResponse('here will be mysets')
 
 
 @login_required
@@ -305,3 +333,147 @@ def project_create(request):
     else:
         form = ProjectForm()
     return render(request, 'projects/project_form.html', {'form': form})
+
+
+@login_required
+def projects_delete(request):
+    Project.objects.filter(author=request.user).delete()
+    return redirect('projects')
+
+
+@login_required
+def mysets(request):
+    context = {'sets': Set.objects.all(), 'current_tab': 'mysets'}
+    return render(request, 'projects/mysets.html', context)
+
+
+@login_required
+def myset_create(request):
+    if request.method == 'POST':
+        form = SetForm(request.POST, author=request.user)
+        if form.is_valid():
+            new_set = form.save(commit=False)
+            new_set.author = request.user
+            new_set.save()
+            # retrieve project ids from cookies and add projects to set
+            project_ids = get_projects_ids_from_cookies(request.COOKIES)
+            new_set.projects.set(project_ids)
+            return HttpResponse('created')
+    else:
+        form = SetForm(author=request.user)
+    return HttpResponse(form.as_p())
+
+
+@login_required
+def mysets_delete(request):
+    Set.objects.filter(author=request.user).delete()
+    return redirect('mysets')
+
+
+@login_required
+def myset_add_project(request, set_id):
+    set_obj = get_object_or_404(Set, id=set_id, author=request.user)
+    if request.method == 'POST':
+        project_ids = get_projects_ids_from_cookies(request.COOKIES)
+        set_obj.projects.set(project_ids)
+
+        response = HttpResponse('success')
+        messages.success(request, 'Your set has been successfully updated')
+        # clear cookies
+        delete_cookies(response, ['update_set', 'set_id', 'project_ids'])
+        return response
+    # GET request
+    # retrieve sets' project ids and write to cookies
+    projects_ids = list(set_obj.projects.values_list('id', flat=True))
+    projects_ids = '|'.join(str(proj_id) for proj_id in projects_ids)
+
+    response = redirect('projects')
+    additional_cookies = {'update_set': 'yes', 'set_id': set_id, 'project_ids': projects_ids}
+    add_cookies(response, additional_cookies)
+    return response
+
+
+@login_required
+def myset_rename(request, set_id):
+    set_obj = get_object_or_404(Set, id=set_id, author=request.user)
+    if request.method == 'POST':
+        form = SetForm(request.POST, instance=set_obj, author=request.user)
+        if form.is_valid():
+            form.save()
+            return HttpResponse('success')
+    else:
+        form = SetForm(instance=set_obj, author=request.user)
+    return HttpResponse(form.as_p())
+
+
+@login_required
+def myset_copy(request, set_id):
+    set_obj = get_object_or_404(Set, id=set_id, author=request.user)
+    new_set_name = f'Copy of {set_obj.name}'
+    project_ids = []
+    # if the set with such name already exists
+    if Set.objects.filter(name=new_set_name, author=request.user).first():
+        messages.error(request, f'Copy of this set already exists. Check your set list for "{new_set_name}".')
+        return redirect('mysets')
+
+    # clone all not original projects in order to avoid changing these
+    # projects in copied sets, when editing these projects in original set
+    for project in set_obj.projects.all():
+        if not project.original:
+            project_copy = clone_project(project)
+            project_ids.append(project_copy.id)
+        else:
+            project_ids.append(project.id)
+    # create a new set
+    set_obj.pk = None
+    set_obj.name = new_set_name
+    set_obj.save()
+    set_obj.projects.set(project_ids)
+    return redirect('mysets')
+
+
+@login_required
+def myset_delete(request, set_id):
+    set_obj = get_object_or_404(Set, id=set_id, author=request.user)
+    set_obj.delete()
+    return redirect('mysets')
+
+
+@login_required
+def myset_project_edit(request, set_id, project_id):
+    set_obj = get_object_or_404(Set, id=set_id, author=request.user)
+    project = get_object_or_404(Project, id=project_id)
+
+    if request.method == 'POST':
+        # Copy project instance if it is original and edit only this copy
+        if project.original:
+            # Remove original project from set
+            set_obj.projects.remove(project)
+            # Copy project
+            project = clone_project(project)
+            # Add copied project to set
+            set_obj.projects.add(project)
+
+        form = ProjectForm(request.POST, instance=project)
+        if form.is_valid():
+            edited_project = form.save(commit=False)
+            edited_project.save(refresh_index=False, dry_index_update=True)
+            form.save_m2m()  # save related industries and technologies
+            return redirect('mysets')
+    else:  # need this 'else' in order to return form object with errors if form was invalid
+        form = ProjectForm(instance=project)
+    return render(request, 'projects/project_form.html', {'project': project, 'form': form})
+
+
+@login_required
+def myset_project_delete(request, set_id, project_id):
+    set_obj = get_object_or_404(Set, id=set_id, author=request.user)
+    project = get_object_or_404(Project, id=project_id)
+    if project.original:
+        set_obj.projects.remove(project)
+    else:  # delete project if it's not original
+        project.delete()
+    # Delete set if there are no projects inside
+    if not set_obj.projects.exists():
+        set_obj.delete()
+    return redirect('mysets')

@@ -37,12 +37,14 @@ class Project(models.Model):
     created_at = models.DateTimeField(_('Date created'), auto_now_add=True)
     updated_at = models.DateTimeField(_('Date updated'), auto_now=True)
     is_private = models.BooleanField(_('Project is private'), default=True)
+    original = models.BooleanField(_('Project is original'), default=True)
 
     def get_elasticsearch_document(self):
         doc = {
             'title': self.title,
             'description': self.description,
             'author': self.author.id,
+            'project_id': self.id,
             'is_private': self.is_private,
             'industries': list(self.industries.values_list("id", flat=True)),
             'technologies': list(self.technologies.values_list("id", flat=True)),
@@ -98,3 +100,19 @@ class CSVFile(models.Model):
 
     class Meta:
         verbose_name_plural = 'CSV Files'
+
+
+class Set(models.Model):
+    name = models.CharField(_('Set name'), max_length=150)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='author_sets')
+    projects = models.ManyToManyField(Project)
+    created_at = models.DateTimeField(_('Date created'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('Date updated'), auto_now=True)
+
+    def __str__(self):
+        return f'{self.name}'
+
+    class Meta:
+        verbose_name_plural = 'Sets'
+        unique_together = ('name', 'author')
+        ordering = ['-id']
