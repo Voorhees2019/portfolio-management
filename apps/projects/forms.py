@@ -25,6 +25,16 @@ class ProjectForm(forms.ModelForm):
         }
 
 
+class InSetEditProjectForm(ProjectForm):
+    class Meta:
+        model = Project
+        fields = ['title', 'description', 'industries', 'technologies', 'url', 'url_is_active']
+        widgets = {
+            'industries': Select2MultipleWidget,
+            'technologies': Select2MultipleWidget,
+        }
+
+
 class SetForm(forms.ModelForm):
     name = forms.CharField(label="", widget=forms.TextInput(attrs={'class': "form-control my-3"}))
 

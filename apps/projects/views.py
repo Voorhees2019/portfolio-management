@@ -441,6 +441,7 @@ def myset_delete(request, set_id):
 
 @login_required
 def myset_project_edit(request, set_id, project_id):
+    from .forms import InSetEditProjectForm
     set_obj = get_object_or_404(Set, id=set_id, author=request.user)
     project = get_object_or_404(Project, id=project_id)
 
@@ -454,14 +455,14 @@ def myset_project_edit(request, set_id, project_id):
             # Add copied project to set
             set_obj.projects.add(project)
 
-        form = ProjectForm(request.POST, instance=project)
+        form = InSetEditProjectForm(request.POST, instance=project)
         if form.is_valid():
             edited_project = form.save(commit=False)
             edited_project.save(refresh_index=False, dry_index_update=True)
             form.save_m2m()  # save related industries and technologies
             return redirect('mysets')
     else:  # need this 'else' in order to return form object with errors if form was invalid
-        form = ProjectForm(instance=project)
+        form = InSetEditProjectForm(instance=project)
     return render(request, 'projects/project_form.html', {'project': project, 'form': form})
 
 
