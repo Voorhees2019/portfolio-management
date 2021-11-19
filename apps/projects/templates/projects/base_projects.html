@@ -292,10 +292,14 @@
             }
         }
 
+        function maybePluralize(count, noun, suffix = 's') {
+            return`${count} ${noun}${count !== 1 ? suffix : ''}`;
+        }
+
         function refreshSetModeElements() {
             let projectIdsList = getCookieProjectIdsList(cnameProjectsIds);
             if (projectIdsList) {
-                $('#projectsAddedCount').text(`${projectIdsList.length} {% trans 'projects added' %}`);
+                $('#projectsAddedCount').text(`${maybePluralize(projectIdsList.length, 'project')} added`);
                 $('.add-project-to-set').each(function () {
                     let curAddButton = $(this);
                     if (projectIdsList.includes(curAddButton.data('project-id'))) {
@@ -307,7 +311,7 @@
                     }
                 });
             } else {
-                $('#projectsAddedCount').text('0 {% trans 'projects added' %}');
+                $('#projectsAddedCount').text('0 projects added');
                 $('.add-project-to-set').show();
                 $('.remove-project-from-set').hide();
             }
