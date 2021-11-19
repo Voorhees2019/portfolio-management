@@ -30,14 +30,14 @@ class Project(models.Model):
     title = models.CharField(_('Project name'), max_length=150)
     description = models.TextField(_('Description'))
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='author_projects')
-    industries = models.ManyToManyField(Industry)
-    technologies = models.ManyToManyField(Technology)
+    industries = models.ManyToManyField(Industry, related_name='projects_containing_industry')
+    technologies = models.ManyToManyField(Technology, related_name='projects_containing_technology')
     url = models.URLField(_('Project website'), null=True, blank=True)
     url_is_active = models.BooleanField(_('Website is active'), default=False)
     created_at = models.DateTimeField(_('Date created'), auto_now_add=True)
     updated_at = models.DateTimeField(_('Date updated'), auto_now=True)
     is_private = models.BooleanField(_('Project is private'), default=True)
-    original = models.BooleanField(_('Project is original'), default=True)
+    is_original = models.BooleanField(_('Project is original'), default=True)
 
     def get_elasticsearch_document(self):
         doc = {
@@ -105,7 +105,7 @@ class CSVFile(models.Model):
 class Set(models.Model):
     name = models.CharField(_('Set name'), max_length=150)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='author_sets')
-    projects = models.ManyToManyField(Project)
+    projects = models.ManyToManyField(Project, related_name='sets_containing_project')
     created_at = models.DateTimeField(_('Date created'), auto_now_add=True)
     updated_at = models.DateTimeField(_('Date updated'), auto_now=True)
 

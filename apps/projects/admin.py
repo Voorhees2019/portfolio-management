@@ -106,9 +106,9 @@ class ProjectResource(resources.ModelResource):
 class ProjectAdmin(ImportExportActionModelAdmin):
     resource_class = ProjectResource
 
-    list_display = ("id", "title", "original", "author", "url", "url_is_active", "is_private", "updated_at")
+    list_display = ("id", "title", "is_original", "author", "url", "url_is_active", "is_private", "updated_at")
     list_display_links = ("id", "title")
-    list_filter = ("author", "url_is_active", "original", "created_at")
+    list_filter = ("author", "url_is_active", "is_original", "created_at")
     raw_id_fields = ("industries", "technologies")
     search_fields = ("title", "description")
     list_per_page = 25

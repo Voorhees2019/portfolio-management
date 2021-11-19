@@ -45,11 +45,7 @@ class SetForm(forms.ModelForm):
     def clean_name(self):
         from django.core.exceptions import ValidationError
         cleaned_name = self.cleaned_data.get('name')
-        try:
-            Set.objects.get(name=cleaned_name, author=self.author)
-        except Set.DoesNotExist:
-            pass
-        else:
+        if Set.objects.filter(name=cleaned_name, author=self.author).exists():
             raise ValidationError('Set with such name already exists')
         return cleaned_name
 

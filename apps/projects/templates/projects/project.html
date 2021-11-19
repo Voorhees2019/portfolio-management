@@ -13,7 +13,7 @@
                 <div class="mr-auto">
                     {% spaceless %}
                         <h4 id="project{{ project.id }}" class="font-weight-bold scroll-mt">{{ project.title }}{% if condition == 'mysets' %}<sup
-                                class="font-weight-normal">{% if project.original %}Original{% else %}Edited{% endif %}</sup>{% endif %}</h4>
+                                class="font-weight-normal">{% if project.is_original %}Original{% else %}Edited{% endif %}</sup>{% endif %}</h4>
                     {% endspaceless %}
                 </div>
                 {% if condition == 'projects' %}

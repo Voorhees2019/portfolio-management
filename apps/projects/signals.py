@@ -28,5 +28,5 @@ def delete_csv_file(sender, instance, **kwargs):
 @receiver(pre_delete, sender=Set)
 def delete_set(sender, instance, **kwargs):
     for project in instance.projects.all():
-        if not project.original:
+        if not project.is_original:
             project.delete()

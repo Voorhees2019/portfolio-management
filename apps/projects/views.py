@@ -101,7 +101,7 @@ def clone_project(project: Project):
     project.pk = None
     # do not put the copied project into elastic index
     project.save(refresh_index=False, dry_index_update=True)
-    project.original = False
+    project.is_original = False
     project.save(refresh_index=False, dry_index_update=True)
     project.industries.set(old_industries)
     project.technologies.set(old_technologies)
@@ -343,7 +343,7 @@ def projects_delete(request):
 
 @login_required
 def mysets(request):
-    context = {'sets': Set.objects.all(), 'current_tab': 'mysets'}
+    context = {'sets': Set.objects.filter(author=request.user), 'current_tab': 'mysets'}
     return render(request, 'projects/mysets.html', context)
 
 
@@ -419,7 +419,7 @@ def myset_copy(request, set_id):
     # clone all not original projects in order to avoid changing these
     # projects in copied sets, when editing these projects in original set
     for project in set_obj.projects.all():
-        if not project.original:
+        if not project.is_original:
             project_copy = clone_project(project)
             project_ids.append(project_copy.id)
         else:
@@ -447,7 +447,7 @@ def myset_project_edit(request, set_id, project_id):
 
     if request.method == 'POST':
         # Copy project instance if it is original and edit only this copy
-        if project.original:
+        if project.is_original:
             # Remove original project from set
             set_obj.projects.remove(project)
             # Copy project
@@ -470,7 +470,7 @@ def myset_project_edit(request, set_id, project_id):
 def myset_project_delete(request, set_id, project_id):
     set_obj = get_object_or_404(Set, id=set_id, author=request.user)
     project = get_object_or_404(Project, id=project_id)
-    if project.original:
+    if project.is_original:
         set_obj.projects.remove(project)
     else:  # delete project if it's not original
         project.delete()
