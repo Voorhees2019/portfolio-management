@@ -13,6 +13,7 @@ def create_index(index_name='projects'):
                 "title": {"type": "text"},
                 "description": {"type": "text"},
                 "author": {"type": "keyword"},
+                "project_id": {"type": "long"},
                 "is_private": {"type": "boolean"},
                 "industries": {"type": "keyword"},
                 "technologies": {"type": "keyword"}
@@ -41,12 +42,19 @@ def update_elastic_document(obj, index_name='projects', refresh_index=True):
 
 
 def delete_elastic_document(obj, index_name='projects', refresh_index=True):
-    es.delete(index=index_name, id=obj.id)
+    es.delete(index=index_name, id=obj.id, ignore=[400, 404])
     if refresh_index:
         refresh_elastic_index(index_name)
 
 
 def update_elastic_index(index_name='projects'):
+    if 'project_id' not in es.indices.get_mapping(index=index_name)[index_name]['mappings']['properties']:
+        additional_properties = {
+            "properties": {
+                "project_id": {"type": "long"}
+            }
+        }
+        es.indices.put_mapping(index=index_name, body=additional_properties)
     for project in Project.objects.all():
         update_elastic_document(project, index_name=index_name, refresh_index=False)
     refresh_elastic_index(index_name)

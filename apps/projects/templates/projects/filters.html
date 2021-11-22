@@ -1,6 +1,6 @@
 {% load i18n %}
 
-<div class="col-11">
+<div id="filtersBlock" class="col-11">
     <form id="filterForm" action="" method="GET">
         <!-- Industries -->
         <h3>Industry</h3>
@@ -29,7 +29,7 @@
                                    for="{{ industry.id }}Check">{{ industry.title }}</label>
                         </div>
                         <div class="mr-3">
-                            <span class="font-weight-bold">
+                            <span class="font-weight-bold text-nowrap">
                                 {% if selected_industries and doc_count != 0 and industry.id not in selected_industries %}+{% endif %}
                                 {{ doc_count }}
                             </span>
@@ -66,7 +66,7 @@
                                    for="{{ technology.id }}Check">{{ technology.title }}</label>
                         </div>
                         <div class="mr-3">
-                            <span class="font-weight-bold">
+                            <span class="font-weight-bold text-nowrap">
                                 {% if selected_technologies and doc_count != 0 and technology.id not in selected_technologies %}+{% endif %}
                                 {{ doc_count }}
                             </span>

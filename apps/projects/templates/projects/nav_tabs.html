@@ -1,0 +1,10 @@
+{% load i18n %}
+
+<div class="btn-group {% if current_tab != "mysets" %}mb-1{% endif %}" role="group" aria-label="Basic example">
+    <a href="{% url 'projects' %}"
+       class="btn btn-secondary {% if current_tab == "private" %}active{% endif %}">{% trans "Private" %}</a>
+    <a href="{% url 'projects_public' %}"
+       class="btn btn-secondary {% if current_tab == "public" %}active{% endif %}">{% trans "Public" %}</a>
+    <a href="{% url 'mysets' %}"
+       class="btn btn-secondary {% if current_tab == "mysets" %}active{% endif %}">{% trans "My Sets" %}</a>
+</div>
