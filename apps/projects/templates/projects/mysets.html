@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "My Sets" %}{% endblock %}
+
+{% block content %}
+    {% include 'alerts.html' %}
+    <div class="flex flex-row">
+        {% include "projects/nav_tabs.html" with current_tab=current_tab %}
+        <a href="" class="btn btn-outline-primary ml-2 text-nowrap">{% trans "Manage Shared Links" %}</a>
+        <button type="button" id="createNewSet"
+                class="btn btn-outline-success text-nowrap">{% trans "Create new set" %}</button>
+        {% if sets %}
+            <a href="" class="btn btn-outline-danger text-nowrap deleteAllSets"
+               data-delete-url="{% url 'mysets_delete' %}">{% trans "Delete all" %}</a>
+        {% endif %}
+    </div>
+    <div>
+        <h3 class="my-3 font-weight-bold">Your Sets</h3>
+    </div>
+    {% if sets %}
+        <div class="accordion mt-3" id="accordionSet">
+            {% for set in sets %}
+                <div class="card">
+                    <div class="card-header d-flex" id="heading{{ set.id }}">
+                        <div class="mr-auto">
+                            <h2 class="mb-0">
+                                <button class="btn btn-link dropdown-toggle text-decoration-none font-weight-bold"
+                                        type="button" data-toggle="collapse" data-target="#collapse{{ set.id }}"
+                                        aria-expanded="false" aria-controls="collapse{{ set.id }}">
+                                    {{ set.name }}
+                                </button>
+                            </h2>
+                        </div>
+                        <div>
+                            <a href="{% url 'myset_add_project' set.id %}"
+                               class="btn btn-warning">{% trans "Add project" %}</a>
+                            <button type="button" class="btn btn-info renameSet" data-toggle="modal"
+                                    data-target="#renameSetModal"
+                                    data-set-id="{{ set.id }}">{% trans "Rename" %}</button>
+                            <a href="" class="btn btn-success">{% trans "Share" %}</a>
+                            <a href="" class="btn btn-dark text-nowrap">{% trans "Share to Email" %}</a>
+                            <a href="{% url 'myset_copy' set.id %}"
+                               class="btn btn-secondary">{% trans "Duplicate" %}</a>
+                            <a href="" class="btn btn-danger deleteSet"
+                               data-delete-url="{% url 'myset_delete' set.id %}">{% trans "Delete" %}</a>
+                        </div>
+                    </div>
+
+                    <div id="collapse{{ set.id }}" class="collapse" aria-labelledby="heading{{ set.id }}">
+                        <div class="card-body">
+                            {% for project in set.projects.all %}
+                                {% include "projects/project.html" with project=project condition='mysets' %}
+                                <hr>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-primary mt-3" role="alert">
+            You have not created any set yet.
+        </div>
+    {% endif %}
+
+    <!-- RENAME SET MODAL -->
+    <div class="modal fade" id="renameSetModal" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <form id="renameSetForm" action="" method="POST">
+                        {% csrf_token %}
+                        <h3 class="modal-title text-center font-weight-bold" id="renameSetModalLabel">Enter a
+                            new set name</h3>
+                        <div id="emptyFormBlock">
+                            <p>Loading...</p>
+                        </div>
+                        <div class="d-flex justify-content-center">
+                            <button type="submit" class="btn btn-primary mr-2">Rename</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script type="text/javascript">
+        // create new set
+        let cnameSetCreateMode = 'create_set_mode';
+        $('#createNewSet').click(function () {
+            document.cookie = cnameSetCreateMode + "=yes; path=/";
+            window.location.replace("{% url 'projects' %}");
+        });
+
+        function generateSpecificSetRenameURL(set_id) {
+            return "{% url 'myset_rename' set_id=999999 %}".replace(/999999/, set_id.toString());
+        }
+
+        // rename set
+        let set_id;
+        $('.renameSet').click(function () {
+            set_id = $(this).data('set-id');
+            $("#emptyFormBlock").load(generateSpecificSetRenameURL(set_id));
+        });
+        // renameSet form submission
+        $("#renameSetForm").submit(function (e) {
+            e.preventDefault();
+            let form = $(this);
+            let url = generateSpecificSetRenameURL(set_id);
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: form.serialize(),
+                success: function (response) {
+                    if (response === 'success') {
+                        window.location.replace("{% url 'mysets' %}");
+                    } else {
+                        $('#emptyFormBlock').html(response);
+                        $('.errorlist').addClass('alert alert-danger').css('list-style-type', 'none');
+                    }
+                }
+            });
+        });
+
+        {% include "projects/deleteObjectHandler.js" %}
+        // confirm set deletion
+        deleteObjectHandler('deleteSet', 'Are you sure you want to delete this set?')
+        // confirm removing project from set
+        deleteObjectHandler('removeProjectFromSet', 'Are you sure you want to remove this project from set?')
+        // confirm All user's sets deletion
+        deleteObjectHandler('deleteAllSets', 'Are you sure you want to delete ALL your sets?')
+    </script>
+{% endblock %}
