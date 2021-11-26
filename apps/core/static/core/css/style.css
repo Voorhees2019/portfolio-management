@@ -1,0 +1,81 @@
+/*body, html {
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+}*/
+
+.bg-image {
+    background-image: url("../images/bg2x.png");
+    height: 100%;
+    /* Center and scale the image nicely */
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.nav-link {
+    font-family: 'Nunito', sans-serif;
+    color: #FFFFFF;
+    font-size: 20px;
+}
+
+.nav-link:hover {
+    font-family: 'Nunito', sans-serif;
+    color: #FFFFFF;
+    font-size: 20px;
+    text-decoration: underline;
+}
+
+.drop-cap {
+    color: #579CE9;
+}
+
+.header {
+    width: 60%;
+    margin: 5% auto 0;
+    text-align: center;
+    color: #FFFFFF;
+    font-family: 'Nunito', sans-serif;
+    font-weight: bold;
+    font-size: 40px;
+    line-height: 48px;
+}
+
+.container-info {
+    margin-top: 8%;
+}
+
+.info {
+    text-align: center;
+    color: #FFFFFF;
+    font-family: 'Nunito', sans-serif;
+    font-weight: bold;
+    font-size: 20px;
+    line-height: 24px;
+}
+
+footer {
+    background-color: #000000;
+    width: 100%;
+    opacity: 0.8;
+    text-align: center;
+    color: #FFFFFF;
+    font-family: 'Nunito', sans-serif;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.emailInput {
+    color: #FFFFFF;
+    font-family: 'Nunito', sans-serif;
+    font-weight: bold;
+    background-color: #212224;
+    border-color: #212224;
+}
+
+.subscribe, .subscribe:hover {
+    background-color: #152435;
+    color: #FFFFFF;
+    font-family: 'Nunito', sans-serif;
+    font-weight: bold;
+}

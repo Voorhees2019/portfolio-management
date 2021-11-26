@@ -3,7 +3,7 @@ from import_export import resources
 from import_export.fields import Field
 from import_export.admin import ImportExportActionModelAdmin
 from import_export.widgets import ManyToManyWidget
-from .models import Industry, Technology, Project, Company, CSVFile, Set
+from .models import Industry, Technology, Project, Company, CSVFile, Set, SetSharedLink
 from .forms import CustomImportForm, CustomConfirmImportForm
 
 
@@ -159,4 +159,12 @@ class SetAdmin(admin.ModelAdmin):
     list_display_links = ("id", "name")
     search_fields = ("id", "name", "author")
     raw_id_fields = ("projects",)
+    list_per_page = 25
+
+
+@admin.register(SetSharedLink)
+class SetSharedLinkAdmin(admin.ModelAdmin):
+    list_display = ("id", "__str__", "created_at")
+    list_display_links = ("id", "__str__")
+    search_fields = ("id", "name")
     list_per_page = 25
