@@ -37,7 +37,8 @@
                             <button type="button" class="btn btn-info renameSet" data-toggle="modal"
                                     data-target="#renameSetModal"
                                     data-set-id="{{ set.id }}">{% trans "Rename" %}</button>
-                            <a href="" class="btn btn-success">{% trans "Share" %}</a>
+                            <button type="button" data-url="{% url 'myset_create_shared_link' set.id %}"
+                                    class="btn btn-success createSharedLink">{% trans "Share" %}</button>
                             <a href="" class="btn btn-dark text-nowrap">{% trans "Share to Email" %}</a>
                             <a href="{% url 'myset_copy' set.id %}"
                                class="btn btn-secondary">{% trans "Duplicate" %}</a>
@@ -121,6 +122,30 @@
                         $('#emptyFormBlock').html(response);
                         $('.errorlist').addClass('alert alert-danger').css('list-style-type', 'none');
                     }
+                }
+            });
+        });
+
+        function copyToClipboard(text) {
+            const elem = document.createElement('textarea');
+            elem.value = text;
+            document.body.appendChild(elem);
+            elem.select();
+            document.execCommand('copy');
+            document.body.removeChild(elem);
+        }
+
+        $('.createSharedLink').click(function (e) {
+            let url = $(this).data('url');
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: {
+                    'csrfmiddlewaretoken': '{{csrf_token}}'
+                },
+                success: function (sharedLink) {
+                    copyToClipboard(sharedLink);
+                    alert('Link copied to clipboard');
                 }
             });
         });
