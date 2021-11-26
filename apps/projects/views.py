@@ -5,10 +5,12 @@ from django.contrib.auth.decorators import login_required
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models.fields.files import FieldFile
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed
 from django.urls import reverse
+from hashlib import md5
 from import_export.results import Result
-from .models import Project, Industry, Technology, CSVFile, Set
+from uuid import uuid4
+from .models import Project, Industry, Technology, CSVFile, Set, SetSharedLink
 from .utils import search_docs
 from tablib import import_set
 from .admin import ProjectResource, process_before_import_row
@@ -106,6 +108,15 @@ def clone_project(project: Project):
     project.industries.set(old_industries)
     project.technologies.set(old_technologies)
     return project
+
+
+def get_client_ip(request) -> str:
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 
 
 @login_required
@@ -478,3 +489,35 @@ def myset_project_delete(request, set_id, project_id):
     if not set_obj.projects.exists():
         set_obj.delete()
     return redirect('mysets')
+
+
+@login_required
+def myset_create_shared_link(request, set_id):
+    set_obj = get_object_or_404(Set, id=set_id)
+    if request.method == 'POST':
+        if obj := SetSharedLink.objects.filter(set=set_obj).first():
+            # get token if shared link already exists for this set
+            token = obj.token
+        else:
+            # generate random token for unique shared link
+            token = uuid4().hex
+            SetSharedLink.objects.create(set=set_obj, token=token)
+
+        shared_link = settings.SITE_URL + reverse("myset_shared_link", args=[token])
+        return HttpResponse(shared_link)
+    else:
+        return HttpResponseNotAllowed(['POST'])
+
+
+def myset_shared_link(request, token: str):
+    set_shared_link_obj = get_object_or_404(SetSharedLink, token=token)
+    ip_address = get_client_ip(request)
+    # hash user's ip address
+    ip_hash = md5(ip_address.encode()).hexdigest()
+
+    if ip_hash not in set_shared_link_obj.ip_addresses:
+        set_shared_link_obj.ip_addresses.append(ip_hash)
+        set_shared_link_obj.opening_counter += 1
+        set_shared_link_obj.save()
+
+    return render(request, 'projects/shared_set.html', {'set': set_shared_link_obj.set})

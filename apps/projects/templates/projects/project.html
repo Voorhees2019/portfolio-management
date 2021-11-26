@@ -43,6 +43,7 @@
                         <a href="" class="btn btn-danger btn-sm text-nowrap removeProjectFromSet"
                            data-delete-url="{% url 'myset_project_delete' set.id project.id %}">{% trans 'Remove from set' %}</a>
                     </div>
+                {% elif condition == 'shared_set' %}
                 {% endif %}
             </div>
         </div>
@@ -83,10 +84,14 @@
             <span class="text-muted">URL:</span>
         </div>
         <div class="col-md-9">
-            {% if not project.url_is_active %}
-                <i class="fa fa-times"></i>
+            {% if project.url %}
+                {% if not project.url_is_active %}
+                    <i class="fa fa-times"></i>
+                {% endif %}
+                <a href="{{ project.url }}">{{ project.url }}</a>
+            {% else %}
+                <p>Not provided</p>
             {% endif %}
-            <a href="{{ project.url }}">{{ project.url }}</a>
         </div>
     </div>
 </div>

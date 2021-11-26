@@ -1,6 +1,7 @@
 import json
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from datetime import datetime
 from apps.accounts.models import User
@@ -116,3 +117,17 @@ class Set(models.Model):
         verbose_name_plural = 'Sets'
         unique_together = ('name', 'author')
         ordering = ['-id']
+
+
+class SetSharedLink(models.Model):
+    set = models.ForeignKey(Set, on_delete=models.CASCADE, related_name='set_shared_link')
+    token = models.CharField(_('Shared link'), max_length=255, unique=True)
+    ip_addresses = ArrayField(models.CharField(max_length=255, blank=True), default=list)
+    opening_counter = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(_('Date created'), auto_now_add=True)
+
+    def __str__(self):
+        return f'Shared link for Set "{self.set.name}"'
+
+    class Meta:
+        verbose_name_plural = 'Sets Shared Links'
