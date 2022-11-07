@@ -182,7 +182,7 @@ SESSION_COOKIE_SAMESITE = None
 #     ]
 # }
 
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@planeks.net')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@ex.com')
 EMAIL_BCC_ADDRESSES = config('EMAIL_BCC_ADDRESSES', default='', cast=Csv())
 
 PROJECT_CONFIGURATION = config('DJANGO_SETTINGS_MODULE', default='').split('.')[-1]
