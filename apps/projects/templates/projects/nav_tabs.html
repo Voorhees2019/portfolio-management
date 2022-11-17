@@ -5,6 +5,6 @@
        class="btn btn-secondary {% if current_tab == "private" %}active{% endif %}">{% trans "Private" %}</a>
     <a href="{% url 'projects_public' %}"
        class="btn btn-secondary {% if current_tab == "public" %}active{% endif %}">{% trans "Public" %}</a>
-    <a href="{% url 'mysets' %}"
+    <a href="{% url 'mysets' %}" id="button_mysets"
        class="btn btn-secondary {% if current_tab == "mysets" %}active{% endif %}">{% trans "My Sets" %}</a>
 </div>

@@ -1,6 +1,19 @@
 # Here is a random demo data for generating random projects
 
 random_industries = [
+    'Automotive',
+    'Cybersecurity',
+    'E-commerce',
+    'Engineering',
+    'Finance',
+    'Healthcare',
+    'Cloud-based Solutions',
+    'Marketing',
+    'Science',
+    'Design',
+    'Business',
+    'Manufacturing',
+    '',
     'Media Production',
     'Computer & Network Security',
     'Publishing',

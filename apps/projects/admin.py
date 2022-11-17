@@ -25,8 +25,8 @@ def process_before_import_row(row, row_number=None, **kwargs):
     for item in industries:
         Industry.objects.get_or_create(title=item)
 
-    # Transform notes to boolean. If there is nothing in notes, `url_is_active` set to True
-    row['notes'] = not row['notes']
+    # Transform `deactivate_url` to boolean. If there is nothing passed, `url_is_active` set to True
+    row['deactivate_url'] = not row.get('deactivate_url', None)
 
 
 @admin.register(Industry)
@@ -50,7 +50,7 @@ class ProjectResource(resources.ModelResource):
         super().__init__()
         self.author = author
 
-    url_is_active = Field(attribute='url_is_active', column_name='notes')
+    url_is_active = Field(attribute='url_is_active', column_name='deactivate_url')
     technologies = Field(attribute='technologies', column_name='technologies',
                          widget=ManyToManyWidget(model=Technology, separator=', ', field='title'))
     industries = Field(attribute='industries', column_name='industries',
@@ -65,7 +65,7 @@ class ProjectResource(resources.ModelResource):
         """Processing field `url_is_active` on export"""
         if project.url_is_active:
             return ''
-        return 'Doesn\'t work'
+        return "URL doesn't work"
 
     def before_import_row(self, row, row_number=None, **kwargs):
         process_before_import_row(row, row_number, **kwargs)

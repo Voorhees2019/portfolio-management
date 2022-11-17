@@ -52,6 +52,31 @@
         <h1 class="text-center">{% trans "Upload Portfolio" %}</h1>
         <div class="row mt-3">
             <div class="col-md-8 offset-md-2">
+                <p class="text-justify text-monospace">If you already have a CSV file with
+                    your portfolio projects, you can easily import them all here. Or you can create
+                    such file by following the instructions below and upload your portfolio all at
+                    once.
+                </p>
+                <p class="text-monospace text-center">The imported CSV file must include these
+                    columns:</p>
+                <p class="text-monospace">
+                    <span class="font-weight-bold">"title"</span> - a project title;<br>
+                    <span class="font-weight-bold">"description"</span> - a project description;<br>
+                    <span class="font-weight-bold">"industries"</span> - industries the project
+                    belongs to (divided by comma);<br>
+                    <span class="font-weight-bold">"technologies"</span> - technologies used to
+                    build a project (divided by comma);<br>
+                    <span class="font-weight-bold">"url"</span> - a project URL (if available);<br>
+                    <span class="font-weight-bold">"deactivate_url"</span> - the field is <span
+                        class="font-weight-bold font-italic">optional</span>. Put here any text if
+                    the project URL is inactive (the link will still be visible, but with the
+                    special icon attached).
+                </p>
+
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
                 <div class="form-group inputDnD">
                     <label class="sr-only" for="inputFile">File Upload</label>
                     <input type="file" class="form-control-file text-primary font-weight-bold" id="inputFile"
