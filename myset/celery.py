@@ -2,6 +2,8 @@ from celery import Celery
 from decouple import config
 import os
 
+# Set the default Django settings module for the 'celery' program.
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', config('DJANGO_SETTINGS_MODULE'))
 
 app = Celery(config('PROJECT_NAME', default='demo'))
 

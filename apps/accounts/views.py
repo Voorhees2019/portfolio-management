@@ -1,18 +1,16 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
-from django.core.mail import send_mail, BadHeaderError
 from django.http import HttpResponse
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.template.loader import render_to_string
 from django.urls import reverse
-from django.utils.encoding import force_bytes, force_text
-from django.utils.html import strip_tags
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_text
+from django.utils.http import urlsafe_base64_decode
 from .models import User
 from .forms import EditUserForm
 from .tokens import account_activation_token
+from .tasks import send_verification_email
 
 
 @login_required
@@ -67,37 +65,14 @@ def login(request):
     return render(request, 'accounts/login.html', context)
 
 
-def send_verification_email(to_user):
-    email_template_name = 'accounts/email/confirm_email.html'
-    c = {
-        'user': to_user,
-        'uid': urlsafe_base64_encode(force_bytes(to_user.pk)),
-        'token': account_activation_token.make_token(to_user),
-    }
-    mail_subject = 'Activate your account'
-    html_message = render_to_string(email_template_name, c)
-    plain_message = strip_tags(html_message)
-
-    try:
-        send_mail(
-            subject=mail_subject,
-            message=plain_message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[to_user.email],
-            html_message=html_message,
-            fail_silently=False)
-    except BadHeaderError:
-        return HttpResponse('Invalid header found.')
-
-
-def alert_email_sent(request):
+def notify_verification_email_sent(request):
     messages.success(request, 'Verification email has been sent to your email address. Please check your inbox.')
 
 
 def verify_profile_email(request):
     user = request.user
-    send_verification_email(to_user=user)
-    alert_email_sent(request)
+    send_verification_email.delay(user_id=user.id)
+    notify_verification_email_sent(request)
     return redirect('personal_information')
 
 
@@ -112,8 +87,8 @@ def register(request):
             user = form.save(commit=False)
             user.backend = 'django.contrib.auth.backends.ModelBackend'
             user.save()
-            send_verification_email(to_user=user)
-            alert_email_sent(request)
+            send_verification_email.delay(user_id=user.id)
+            notify_verification_email_sent(request)
             auth.login(request, user)
             return redirect('personal_information')
     else:
