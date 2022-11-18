@@ -52,4 +52,6 @@ urlpatterns = [
     path('profile/personal-information/', views.personal_information, name='personal_information'),
     path('profile/personal-information/verify-email/', views.verify_profile_email, name='verify_profile_email'),
     path('profile/personal-information/edit/', views.edit_personal_information, name='edit_personal_information'),
+    # company
+    path('profile/company-information/', views.company_information, name='company_information'),
 ]

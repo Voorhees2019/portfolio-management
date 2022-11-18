@@ -6,6 +6,8 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin,
 )
+from django.core.validators import MaxValueValidator, MinValueValidator
+from datetime import datetime
 
 
 class UserManager(BaseUserManager):
@@ -133,3 +135,31 @@ class User(AbstractBaseUser, PermissionsMixin):
         from django.utils.timezone import now
         delta = now() - self.date_joined
         return delta.days
+
+
+class Company(models.Model):
+    name = models.CharField(_('Company name'), max_length=150)
+    logo = models.ImageField(_('Company logo'), upload_to='company_logos/')
+    founder = models.OneToOneField(User, on_delete=models.CASCADE, related_name='founder_company')
+    year_founded = models.IntegerField(validators=[MinValueValidator(1950), MaxValueValidator(datetime.now().year)])
+    website = models.URLField(_('Company website'))
+    email = models.EmailField(_('Contact email'), max_length=255, unique=True)
+    slogan = models.CharField(_('Company slogan'), max_length=255)
+    description = models.TextField(_('Description'))
+
+    class Meta:
+        verbose_name_plural = 'Companies'
+
+    def __str__(self):
+        return f"{self.name}"
+
+    def save(self, *args, **kwargs):
+        """Delete the previous logo from the storage if a new one has been uploaded."""
+
+        try:
+            company = Company.objects.get(pk=self.pk)
+            if company.logo != self.logo:
+                company.logo.delete(save=False)  # `save=False` to prevent a recursive save
+        except:
+            pass
+        super().save(*args, **kwargs)

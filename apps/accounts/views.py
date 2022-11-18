@@ -7,8 +7,8 @@ from django.contrib import messages
 from django.urls import reverse
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
-from .models import User
-from .forms import EditUserForm
+from .models import User, Company
+from .forms import EditUserForm, CompanyForm
 from .tokens import account_activation_token
 from .tasks import send_verification_email
 
@@ -141,3 +141,17 @@ def logout(request):
     _next = request.GET.get('next')
     auth.logout(request)
     return redirect(_next if _next else settings.LOGOUT_REDIRECT_URL)
+
+
+def company_information(request):
+    company = Company.objects.filter(founder=request.user).first()
+    if request.method == 'POST':
+        form = CompanyForm(request.POST, request.FILES, instance=company)
+        if form.is_valid():
+            company = form.save(commit=False)
+            company.founder = request.user
+            company.save()
+            return redirect('company_information')
+    else:
+        form = CompanyForm(instance=company)
+    return render(request, 'accounts/company_information.html', {'form': form})

@@ -39,7 +39,8 @@
                                     data-set-id="{{ set.id }}">{% trans "Rename" %}</button>
                             <button type="button" data-url="{% url 'myset_create_shared_link' set.id %}"
                                     class="btn btn-success createSharedLink">{% trans "Share" %}</button>
-                            <a href="" class="btn btn-dark text-nowrap">{% trans "Share to Email" %}</a>
+                            <a href="mailto:?subject={{ request.user.founder_company }} Portfolio"
+                               class="btn btn-dark text-nowrap">{% trans "Share to Email" %}</a>
                             <a href="{% url 'myset_copy' set.id %}"
                                class="btn btn-secondary">{% trans "Duplicate" %}</a>
                             <a href="" class="btn btn-danger deleteSet"
@@ -88,6 +89,7 @@
 {% endblock %}
 
 {% block extra_js %}
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <script type="text/javascript">
         // create new set
         let cnameSetCreateMode = 'create_set_mode';
@@ -145,7 +147,7 @@
                 },
                 success: function (sharedLink) {
                     copyToClipboard(sharedLink);
-                    alert('Link copied to clipboard');
+                    swal("Link copied to clipboard", "You can now share this set.", "success");
                 }
             });
         });

@@ -3,7 +3,7 @@ from import_export import resources
 from import_export.fields import Field
 from import_export.admin import ImportExportActionModelAdmin
 from import_export.widgets import ManyToManyWidget
-from .models import Industry, Technology, Project, Company, CSVFile, Set, SetSharedLink
+from .models import Industry, Technology, Project, CSVFile, Set, SetSharedLink
 from .forms import CustomImportForm, CustomConfirmImportForm
 
 
@@ -135,14 +135,6 @@ class ProjectAdmin(ImportExportActionModelAdmin):
                 author = form.cleaned_data['author']
                 rk.update({'author': author.id})
         return rk
-
-
-@admin.register(Company)
-class CompanyAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "founder", "website", "email", "slogan")
-    list_display_links = ("id", "name")
-    search_fields = ("name", "description", "founder", "email", "slogan")
-    list_per_page = 25
 
 
 @admin.register(CSVFile)

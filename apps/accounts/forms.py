@@ -8,7 +8,8 @@ from django.contrib.auth.forms import (
     AuthenticationForm,
 )
 from django.conf import settings
-from .models import User
+from .models import User, Company
+from datetime import datetime
 
 
 class UserChangeForm(BaseUserChangeForm):
@@ -136,3 +137,11 @@ class EditUserEmailForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ('email',)
+
+
+class CompanyForm(forms.ModelForm):
+    description = forms.CharField(label="Description", widget=forms.Textarea(attrs={"rows": 3}))
+
+    class Meta:
+        model = Company
+        fields = ['name', 'year_founded', 'website', 'email', 'slogan', 'description', 'logo']

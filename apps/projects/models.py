@@ -2,8 +2,6 @@ import json
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.postgres.fields import ArrayField
-from django.core.validators import MaxValueValidator, MinValueValidator
-from datetime import datetime
 from apps.accounts.models import User
 
 
@@ -72,23 +70,6 @@ class Project(models.Model):
 
     class Meta:
         verbose_name_plural = 'Projects'
-
-
-class Company(models.Model):
-    name = models.CharField(_('Company name'), max_length=150)
-    logo = models.ImageField(_('Company logo'), upload_to='company_logos/')
-    founder = models.OneToOneField(User, on_delete=models.CASCADE, related_name='founder_company')
-    year_founded = models.IntegerField(validators=[MinValueValidator(1950), MaxValueValidator(datetime.now().year)])
-    website = models.URLField(_('Company website'))
-    email = models.EmailField(_('Contact email'), max_length=255, unique=True)
-    slogan = models.CharField(_('Company slogan'), max_length=255)
-    description = models.TextField(_('Description'))
-
-    def __str__(self):
-        return f"{self.name}"
-
-    class Meta:
-        verbose_name_plural = 'Companies'
 
 
 class CSVFile(models.Model):

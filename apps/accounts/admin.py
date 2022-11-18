@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User
+from .models import User, Company
 from .forms import UserChangeForm, UserCreationForm
 
 
@@ -82,3 +82,11 @@ class UserAdmin(BaseUserAdmin):
             q.save()
     set_unusable_password.short_description = \
         _('Set unusable password')
+
+
+@admin.register(Company)
+class CompanyAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "founder", "website", "email", "slogan")
+    list_display_links = ("id", "name")
+    search_fields = ("name", "description", "founder", "email", "slogan")
+    list_per_page = 25
