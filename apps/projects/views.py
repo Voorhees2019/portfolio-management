@@ -15,6 +15,7 @@ from .utils import search_docs
 from tablib import import_set
 from .admin import ProjectResource, process_before_import_row
 from .forms import ProjectForm, SetForm
+from .tasks import send_email_to_user
 
 
 class ProjectResourceFrontEnd(ProjectResource):
@@ -517,7 +518,13 @@ def myset_shared_link(request, token: str):
 
     if ip_hash not in set_shared_link_obj.ip_addresses:
         set_shared_link_obj.ip_addresses.append(ip_hash)
-        set_shared_link_obj.opening_counter += 1
+        set_shared_link_obj.link_open_counter += 1
         set_shared_link_obj.save()
 
-    return render(request, 'projects/shared_set.html', {'set': set_shared_link_obj.set})
+        # notify set's owner that somebody followed the shared link
+        mail_subject = "Shared Portfolio Set"
+        plain_message = f'Somebody has just opened the shared link of your portfolio set: ' \
+                        f'"{set_shared_link_obj.set.name}"'
+        send_email_to_user.delay(mail_subject, plain_message, send_to=[set_shared_link_obj.set.author.email])
+    return render(request, 'projects/shared_set.html', {'set': set_shared_link_obj.set,
+                                                        'company': request.user.founder_company})

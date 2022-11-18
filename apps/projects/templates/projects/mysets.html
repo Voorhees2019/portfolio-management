@@ -39,8 +39,8 @@
                                     data-set-id="{{ set.id }}">{% trans "Rename" %}</button>
                             <button type="button" data-url="{% url 'myset_create_shared_link' set.id %}"
                                     class="btn btn-success createSharedLink">{% trans "Share" %}</button>
-                            <a href="mailto:?subject={{ request.user.founder_company }} Portfolio"
-                               class="btn btn-dark text-nowrap">{% trans "Share to Email" %}</a>
+                            <button type="button" data-url="{% url 'myset_create_shared_link' set.id %}"
+                               class="btn btn-dark text-nowrap emailShareLink">{% trans "Share to Email" %}</button>
                             <a href="{% url 'myset_copy' set.id %}"
                                class="btn btn-secondary">{% trans "Duplicate" %}</a>
                             <a href="" class="btn btn-danger deleteSet"
@@ -148,6 +148,20 @@
                 success: function (sharedLink) {
                     copyToClipboard(sharedLink);
                     swal("Link copied to clipboard", "You can now share this set.", "success");
+                }
+            });
+        });
+
+        $('.emailShareLink').click(function (e) {
+            let url = $(this).data('url');
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: {
+                    'csrfmiddlewaretoken': '{{csrf_token}}'
+                },
+                success: function (sharedLink) {
+                    window.location = "mailto:?subject={{ request.user.founder_company }} Portfolio&body=" + sharedLink;
                 }
             });
         });

@@ -20,5 +20,5 @@ urlpatterns = [
     path('mysets/<int:set_id>/projects/<int:project_id>/edit/', views.myset_project_edit, name='myset_project_edit'),
     path('mysets/<int:set_id>/projects/<int:project_id>/delete/', views.myset_project_delete, name='myset_project_delete'),
     path('mysets/<int:set_id>/shared/create/', views.myset_create_shared_link, name='myset_create_shared_link'),
-    path('mysets/shared/<str:token>', views.myset_shared_link, name='myset_shared_link'),
+    path('mysets/shared/<str:token>/', views.myset_shared_link, name='myset_shared_link'),
 ]

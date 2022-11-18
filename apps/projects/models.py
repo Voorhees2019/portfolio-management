@@ -104,7 +104,7 @@ class SetSharedLink(models.Model):
     set = models.ForeignKey(Set, on_delete=models.CASCADE, related_name='set_shared_link')
     token = models.CharField(_('Shared link'), max_length=255, unique=True)
     ip_addresses = ArrayField(models.CharField(max_length=255, blank=True), default=list)
-    opening_counter = models.PositiveIntegerField(default=0)
+    link_open_counter = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(_('Date created'), auto_now_add=True)
 
     def __str__(self):

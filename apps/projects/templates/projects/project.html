@@ -5,10 +5,10 @@
 
 <div class="projectBlock">
     <div class="row mt-2 mb-2">
-        <div class="col-md-3">
+        <div class="col-md-2">
             <span class="text-muted">Name:</span>
         </div>
-        <div class="col-md-9">
+        <div class="col-md-10">
             <div class="d-flex flex-row">
                 <div class="mr-auto">
                     {% spaceless %}
@@ -49,41 +49,51 @@
         </div>
     </div>
     <div class="row mb-1">
-        <div class="col-md-3">
+        <div class="col-md-2">
             <span class="text-muted">Industries:</span>
         </div>
-        <div class="col-md-9">
+        <div class="col-md-10">
             {% for industry in project.industries.all %}
-                <a href="{% set_query_parameter url=projects_url param_name='industries' param_value=industry.id %}"
-                   class="text-decoration-none" target="_blank">{{ industry.title }}</a>{% if not forloop.last %},
+                {% if condition != 'shared_set' %}
+                    <a href="{% set_query_parameter url=projects_url param_name='industries' param_value=industry.id %}"
+                        class="text-decoration-none" target="_blank">{{ industry.title }}</a>
+                {% else %}
+                    {{ industry.title }}
+                {% endif %}
+                {% if not forloop.last %},
             {% endif %}
             {% endfor %}
         </div>
     </div>
     <div class="row mb-1">
-        <div class="col-md-3">
+        <div class="col-md-2">
             <span class="text-muted">Description:</span>
         </div>
-        <div class="col-md-9" style="text-align: justify;">
+        <div class="col-md-10" style="text-align: justify;">
             {{ project.description }}
         </div>
     </div>
     <div class="row mb-1">
-        <div class="col-md-3">
+        <div class="col-md-2">
             <span class="text-muted">Technologies:</span>
         </div>
-        <div class="col-md-9">
+        <div class="col-md-10">
             {% for technology in project.technologies.all %}
-                <a href="{% set_query_parameter url=projects_url param_name='technologies' param_value=technology.id %}"
-                   class="text-decoration-none">{{ technology.title }}</a>{% if not forloop.last %}, {% endif %}
+                {% if condition != 'shared_set' %}
+                    <a href="{% set_query_parameter url=projects_url param_name='technologies' param_value=technology.id %}"
+                        class="text-decoration-none">{{ technology.title }}</a>
+                {% else %}
+                    {{ technology.title }}
+                {% endif %}
+                {% if not forloop.last %}, {% endif %}
             {% endfor %}
         </div>
     </div>
     <div class="row mb-2">
-        <div class="col-md-3">
+        <div class="col-md-2">
             <span class="text-muted">URL:</span>
         </div>
-        <div class="col-md-9">
+        <div class="col-md-10">
             {% if project.url %}
                 {% if not project.url_is_active %}
                     <i class="fa fa-times"></i>
